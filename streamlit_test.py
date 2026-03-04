@@ -11,11 +11,12 @@ df = load_data()
 # --------------- Building Section ---------------------------- 
 
 st.title("SPICE Dashboard Prototype v0.01")
-
+st.divider()
 
 # Testing Input Columns -- Used for KPI Style Metric Outputs
 
 col1, col2, col3 = st.columns(3)
+st.divider()
 
 with col1:
     total_gen = df['Daily Value (kWh)'].sum()
@@ -26,11 +27,11 @@ with col2:
     st.metric("Total Load Hours", f"{total_hours:,.0f}")
 
 with col3:
-    st.metric("Full Load Hours", "15.7")
+    total_yield = df['Total Yield (kWh)'].mean()
+    st.metric("Total Yield", f"{total_yield:,.0f}")
 
 
 st.header("HEADER TEST 1")
-st.write("Testing HEADER 1 Data Section - Making a Line Graph from Cached DataFrame")
 
 st.write("Checking the DataFrame:", df.head())
 

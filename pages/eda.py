@@ -13,11 +13,19 @@ df = load_data()
 # Title for the Page
 st.title("S.P.I.C.E. - Exploratory Data Analysis Page")
 
+
 # Setting up Tabs on EDA Page
-tab1, tab2, tab3 = st.tabs(["SPICE Dataset", "Monthly Sums", "Daily Cumulative"])
+tab1, tab2, tab3 = st.tabs(["Overview", "Monthly Sums", "Daily Cumulative"])
 
 with tab1:
-    st.write(df.head())
+
+    st.write("Dataset Description")
+    st.write(df.describe())
+
+    st.write("Dataset Null Count")
+    st.write(df.isnull().sum())
+    
+    st.write("Default Visualization - Daily Value over Time")
     st.bar_chart(df['Daily Value (kWh)'])
 
 with tab2:
@@ -26,6 +34,8 @@ with tab2:
 with tab3:
     st.dataframe(daily_cumulitive(df))
     st.line_chart(daily_cumulitive(df)['Cumulative Daily'])
+
+
 
 # First Header for the EDA Page
 st.header("EDA 1 Test - Monthly Sum Interactive Chart")
