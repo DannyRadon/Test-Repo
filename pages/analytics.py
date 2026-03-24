@@ -344,3 +344,16 @@ elif range_select == 'Monthly':
     
     with tab_2:
         st.line_chart(monthly_summary)
+
+    
+
+# Setting up Tabs on for Descriptive
+tab1 = st.tabs(["Overview"])
+
+with tab1:
+
+    st.write("Dataset Description")
+    st.write(df.describe())
+
+    st.write("Dataset Null Count")
+    st.write(df.isnull().sum())
