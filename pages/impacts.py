@@ -1,24 +1,30 @@
-# Import Pool
-import streamlit as st              # Importing StreamLit Dashboard Module as 'st'
-import base64
+# TESTING FILE FOR STREAMLIT NAVIGATION SIDE-PANEL
 
-from helpers.data_load import *     # Importing Data Loaders from Helpers File
-from helpers.data_funcs import *    # Importing Helper Functions for Dashboard 
+import streamlit as st
+import matplotlib.pyplot as plt
+
+from helpers.data_load import *
+from helpers.data_funcs import *
+
 
 
 # Initializing the Data into Dashboard
 df_visser, df_bissell = load_data()     # Loading the datasets
 
 
+# Loading in the Icons
+icon_sys_info = get_base64_image("static/icons/icon_sysinfo.png")
+icon_eda_info = get_base64_image("static/icons/icon_analytics.png")
+icon_ml_info = get_base64_image("static/icons/icon_ml.png")
+icon_home = get_base64_image("static/icons/icon_home.png")
 
-# Creating a Session-State for User
-if "page" not in st.session_state:
-    st.session_state.page = "home"
+
+st.title("Environmental Impacts")
 
 
 
-# ---------------------------------------------- CSS & HTML DASHBOARD GRAPHICAL SETUP AREA -------------------------------------------------
 
+# --------------------------------------- CSS & HTML Dashboard Graphical Rendering Section Here ---------------------------------------------
 
 # This CSS creates the Gradient Background 
 st.markdown("""
@@ -31,10 +37,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-
-
-
-# This CSS Handles the Display of the Icons and the Clickable Regions for them
+# This CSS Handles the Setup for the Canvas for the Icons and Clickable Regions for them...
 st.markdown("""
 <style>
 .icon-card {
@@ -101,12 +104,25 @@ st.markdown("""
     color: transparent !important;
 }
 
+/* Tabs background when active */
+[role="tablist"] button[aria-selected="true"] {
+    background: linear-gradient(135deg, #38c401, #81C046, 0.7); !important; /* highlight color */
+    color: white !important;              /* text color */
+    border-radius: 8px;                   /* optional rounded corners */
+}
+
+/* Optional: hover effect for all tabs */
+[role="tablist"] button:hover {
+    background-color: rgba(56,196,1,0.3) !important;
+    color: white !important;
+    border-radius: 8px;
+}
+
 /* Top bar background */
 header[data-testid="stHeader"] {
     background: linear-gradient(135deg, #0054e3, #3b77bc, #009cde) !important; /* gradient */
     height: 50px;           /* adjust height if needed */
 }
-
 
 /* ------------------ Sidebar gradient ------------------ */
 [data-testid="stSidebar"] {
@@ -167,18 +183,6 @@ header[data-testid="stHeader"] {
 
 
 
- 
-st.title("SPICE Dashboard - Home Page")
-
-# Pre-load icons
-icon_sys_info = get_base64_image("static/icons/icon_sysinfo.png")
-icon_eda_info = get_base64_image("static/icons/icon_analytics.png")
-icon_impacts_info = get_base64_image("static/icons/icon_impacts.png")
-icon_ml_info = get_base64_image("static/icons/icon_ml.png")
-icon_home = get_base64_image("static/icons/icon_home.png")
-
-
-
 # This CSS Handles the Green Background for the Icon Sections - This is setup to be handled by the HTML stuff down below
 st.markdown("""
 <style>
@@ -208,16 +212,16 @@ st.markdown("""
 st.markdown(f'''
 <div class="green-section">
     <div class="icon-card">
+        <img src="data:image/png;base64,{icon_home}">
+        <div class="card-text">Home</div>
+    </div>
+    <div class="icon-card">
         <img src="data:image/png;base64,{icon_sys_info}">
         <div class="card-text">System Info</div>
     </div>
     <div class="icon-card">
         <img src="data:image/png;base64,{icon_eda_info}">
         <div class="card-text">Analytics</div>
-    </div>
-    <div class="icon-card">
-        <img src="data:image/png;base64,{icon_impacts_info}">
-        <div class="card-text">Impacts</div>
     </div>
     <div class="icon-card">
         <img src="data:image/png;base64,{icon_ml_info}">
@@ -227,29 +231,55 @@ st.markdown(f'''
 ''', unsafe_allow_html=True)
 
 
-# Overlay invisible buttons -- this is what allows interactivity -- they are like masks...
+
+# ------------------------------------------------ CODE & DATA AREA -------------------------------------------------------------------
+
+# Columns to Establish Clickability for the Icons
 col1, col2, col3, col4 = st.columns(4)
 with col1:
+    if st.button(" ", key="home_btn"):
+        st.switch_page("home.py")
+
+with col2:
     if st.button(" ", key="sys_info_btn"):
         st.switch_page("pages/system_info.py")
 
-with col2:
+with col3:
     if st.button(" ", key="eda_info_btn"):
         st.switch_page("pages/analytics.py")
-
-with col3:
-    if st.button(" ", key="imp_info_btn"):
-        st.switch_page("pages/impacts.py")
 
 with col4:
     if st.button(" ", key="ml_info_btn"):
         st.switch_page("pages/ml.py")
 
 
-# Building the Home Page ---------------------------------------------------------------------------------------------------
+
+# DataFrame Selection for Solar Site
+df_select = st.radio("Select Solar Site:", ['Bissell Thrift Shop', 'New Jubilee Greenhouse'])
+
+if df_select == 'Bissell Thrift Shop':
+    df = df_bissell
+
+elif df_select == 'New Jubilee Greenhouse':
+    df = df_visser
+
+
+st.divider()
 
 
 
 
 
 
+impact_columns = ['coal_emission_avoided', 'co2_avoided', 'cars_offroad']
+
+# Sum up each impact over the dataset to get total contribution
+impact_totals = df[impact_columns].sum()
+
+# Pie chart
+plt.figure(figsize=(4,4))
+colors = ['#ff9999','#66b3ff','#99ff99','#ffcc99','#c2c2f0']  # you can pick more colors if needed
+plt.pie(impact_totals, labels=impact_totals.index, autopct='%1.1f%%', startangle=140, colors=colors, shadow=True)
+plt.title("Environmental Impact Contribution")
+# Display in Streamlit
+st.pyplot(plt)

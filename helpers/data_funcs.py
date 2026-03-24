@@ -3,6 +3,24 @@
 # Import Pool
 import streamlit as st
 import pandas as pd
+import base64
+
+
+
+
+
+# Helper Function - Converting Icon Images to Base64 Encoding for Dash-Display
+def get_base64_image(image_path):
+    import base64
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except Exception as e:
+        # If path is wrong, it won't crash your app
+        return None
+
+
+
 
 # Monthly Daily Output Function for EDA Page
 

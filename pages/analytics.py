@@ -1,24 +1,15 @@
+# ---------------------------------------- Test File for Side-Bar Navigation  --------------------------------------------------------
+
 # Import Pool
-import streamlit as st              # Importing StreamLit Dashboard Module as 'st'
-import base64
+import streamlit as st
+import plotly.express as px
 
-from helpers.data_load import *     # Importing Data Loaders from Helpers File
-from helpers.data_funcs import *    # Importing Helper Functions for Dashboard 
-
-
-# Initializing the Data into Dashboard
-df_visser, df_bissell = load_data()     # Loading the datasets
+from helpers.data_load import load_data
+from helpers.data_funcs import *
 
 
 
-# Creating a Session-State for User
-if "page" not in st.session_state:
-    st.session_state.page = "home"
-
-
-
-# ---------------------------------------------- CSS & HTML DASHBOARD GRAPHICAL SETUP AREA -------------------------------------------------
-
+# ------------------------------------------ CSS & HTML GRAPHICS HANDLING SECTION ------------------------------------------
 
 # This CSS creates the Gradient Background 
 st.markdown("""
@@ -32,9 +23,20 @@ st.markdown("""
 
 
 
+# Loading in the Data (If Not Cached)
+df_visser, df_bissell = load_data()
+
+# Loading in the Icons
+icon_sys_info = get_base64_image("static/icons/icon_sysinfo.png")
+icon_impacts_info = get_base64_image("static/icons/icon_impacts.png")
+icon_ml_info = get_base64_image("static/icons/icon_ml.png")
+icon_home = get_base64_image("static/icons/icon_home.png")
+
+# Title for the Page
+st.title("Exploratory Analytics")
 
 
-# This CSS Handles the Display of the Icons and the Clickable Regions for them
+# This CSS Handles the Setup for the Canvas for the Icons and Clickable Regions for them...
 st.markdown("""
 <style>
 .icon-card {
@@ -101,12 +103,25 @@ st.markdown("""
     color: transparent !important;
 }
 
+/* Tabs background when active */
+[role="tablist"] button[aria-selected="true"] {
+    background: linear-gradient(135deg, #38c401, #81C046, 0.7); !important; /* highlight color */
+    color: white !important;              /* text color */
+    border-radius: 8px;                   /* optional rounded corners */
+}
+
+/* Optional: hover effect for all tabs */
+[role="tablist"] button:hover {
+    background-color: rgba(56,196,1,0.3) !important;
+    color: white !important;
+    border-radius: 8px;
+}
+
 /* Top bar background */
 header[data-testid="stHeader"] {
     background: linear-gradient(135deg, #0054e3, #3b77bc, #009cde) !important; /* gradient */
     height: 50px;           /* adjust height if needed */
 }
-
 
 /* ------------------ Sidebar gradient ------------------ */
 [data-testid="stSidebar"] {
@@ -167,18 +182,6 @@ header[data-testid="stHeader"] {
 
 
 
- 
-st.title("SPICE Dashboard - Home Page")
-
-# Pre-load icons
-icon_sys_info = get_base64_image("static/icons/icon_sysinfo.png")
-icon_eda_info = get_base64_image("static/icons/icon_analytics.png")
-icon_impacts_info = get_base64_image("static/icons/icon_impacts.png")
-icon_ml_info = get_base64_image("static/icons/icon_ml.png")
-icon_home = get_base64_image("static/icons/icon_home.png")
-
-
-
 # This CSS Handles the Green Background for the Icon Sections - This is setup to be handled by the HTML stuff down below
 st.markdown("""
 <style>
@@ -208,12 +211,12 @@ st.markdown("""
 st.markdown(f'''
 <div class="green-section">
     <div class="icon-card">
-        <img src="data:image/png;base64,{icon_sys_info}">
-        <div class="card-text">System Info</div>
+        <img src="data:image/png;base64,{icon_home}">
+        <div class="card-text">Home</div>
     </div>
     <div class="icon-card">
-        <img src="data:image/png;base64,{icon_eda_info}">
-        <div class="card-text">Analytics</div>
+        <img src="data:image/png;base64,{icon_sys_info}">
+        <div class="card-text">System Info</div>
     </div>
     <div class="icon-card">
         <img src="data:image/png;base64,{icon_impacts_info}">
@@ -227,15 +230,18 @@ st.markdown(f'''
 ''', unsafe_allow_html=True)
 
 
-# Overlay invisible buttons -- this is what allows interactivity -- they are like masks...
+
+# ------------------------------------------------ CODE & DATA AREA -------------------------------------------------------------------
+# Clickable-Icon Navigation Area -- Routing to Other Pages -- this is what allows interactivity 
+
 col1, col2, col3, col4 = st.columns(4)
 with col1:
-    if st.button(" ", key="sys_info_btn"):
-        st.switch_page("pages/system_info.py")
+    if st.button(" ", key="home_btn"):
+        st.switch_page("home.py")
 
 with col2:
-    if st.button(" ", key="eda_info_btn"):
-        st.switch_page("pages/analytics.py")
+    if st.button(" ", key="sys_info_btn"):
+        st.switch_page("pages/system_info.py")
 
 with col3:
     if st.button(" ", key="imp_info_btn"):
@@ -246,10 +252,95 @@ with col4:
         st.switch_page("pages/ml.py")
 
 
-# Building the Home Page ---------------------------------------------------------------------------------------------------
+
+# DataFrame Selection for Solar Site
+df_select = st.radio("Select Solar Site:", ['Bissell Thrift Shop', 'New Jubilee Greenhouse'])
+
+if df_select == 'Bissell Thrift Shop':
+    df = df_bissell
+
+elif df_select == 'New Jubilee Greenhouse':
+    df = df_visser
 
 
+st.divider()
 
 
+filt_col_1, filt_col_2 = st.columns(2)
 
+with filt_col_1:
+    range_select = st.radio("Select Interval Type:", ['Daily', 'Weekly', 'Monthly'], horizontal=True)
 
+with filt_col_2:
+    year_select = st.selectbox("Select a Year:", (2025, 2026))
+
+if year_select:
+ 
+    df['time'] = pd.to_datetime(df['time'])
+    df_filtered = df[df['time'].dt.year == year_select]
+
+st.header(f"{range_select} Generation (kWh) for {df_select}")
+tab_1, tab_2 = st.tabs(['Graph Data', 'Sheet Data'])
+
+if range_select == 'Daily':
+
+    with tab_1:
+        if year_select:
+            st.bar_chart(df_filtered['Daily Value Imputed'])
+
+        else:
+            df['time'] = pd.to_datetime(df['time'])
+            df = df.set_index('time')
+
+            st.bar_chart(df['Daily Value Imputed'])
+
+    with tab_2:
+        if year_select:
+            
+            st.dataframe(df_filtered[['time', 'Daily Value Imputed']])
+
+        else:    
+            st.dataframe(df[['time', 'Daily Value Imputed']])
+    
+
+    
+
+elif range_select == 'Weekly':
+
+    if year_select:
+        df_filtered['time'] = pd.to_datetime(df_filtered['time'])
+        df_filtered = df_filtered.set_index('time')
+
+        df_weekly = df_filtered.resample('W').agg({
+        'Daily Value Imputed': 'sum'
+        })
+
+    
+    else:
+        df['time'] = pd.to_datetime(df['time'])
+        df = df.set_index('time')
+
+        df_weekly = df.resample('W').agg({
+        'Daily Value Imputed': 'sum'
+        })
+
+    with tab_1:
+        st.dataframe(df_weekly)
+    
+    with tab_2:
+        st.line_chart(df_weekly)
+    
+
+elif range_select == 'Monthly':
+
+    if year_select:
+        monthly_summary = monthly_output_sums(df_filtered)
+    
+    else:
+        monthly_summary = monthly_output_sums(df)
+
+    with tab_1:
+        st.dataframe(monthly_summary)
+    
+    with tab_2:
+        st.line_chart(monthly_summary)
