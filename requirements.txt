@@ -3,8 +3,8 @@ numpy
 pandas
 plotly
 qrcode
-scikit_learn
+scikit-learn
 seaborn
-st_click_detector
+st-click_detector
 streamlit==1.54.0
 xgboost
