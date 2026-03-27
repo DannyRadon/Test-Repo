@@ -52,7 +52,7 @@ def plot_prediction_view(outputs, selected_target):
         bottom=0.05
     )       
     st.plotly_chart(fig, use_container_width=True)
-@st.cache_data
+
 def plot_xai_view(outputs):
     fi = outputs["feature_importance"]
     fig, ax = plt.subplots(figsize=(10, 5))
@@ -66,7 +66,7 @@ def plot_xai_view(outputs):
     )       
     st.plotly_chart(fig, use_container_width=True)
 
-@st.cache_data
+
 def plot_forecast_view(outputs, selected_target):
     monthly = outputs["monthly"]
     forecast_df = outputs["forecast_df"]
