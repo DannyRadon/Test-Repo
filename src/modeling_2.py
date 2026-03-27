@@ -21,7 +21,7 @@ def load_clean_data():
 def load_model_outputs():
     aeso_clean = load_clean_data()
     return run_modeling_pipeline(aeso_clean)
-@st.cache_data
+
 def plot_prediction_view(outputs, selected_target):
     train_df = outputs["train_df"]
     test_df = outputs["test_df"]
