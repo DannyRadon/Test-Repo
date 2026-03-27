@@ -1,11 +1,141 @@
 # ---------------------------------------- Test File for Side-Bar Navigation  --------------------------------------------------------
 
 # Import Pool
-import streamlit as st
-import plotly.express as px
+import urllib.parse
 
+import streamlit as st
+import streamlit.components.v1 as components
+
+import pandas as pd
+import plotly.express as px
+import matplotlib.pyplot as plt
+
+from st_click_detector import click_detector
 from helpers.data_load import load_data
 from helpers.data_funcs import *
+
+# Loading in the Data (If Not Cached)
+df_visser, df_bissell, df_aeso = load_data()
+
+range_select = "Daily"
+
+params = st.query_params
+
+# --- SYNC URL TO SESSION STATE ---
+for url_key, state_key in [
+    ("dataset", "dataset"), 
+    ("graph", "graph_type"), 
+    ("x_var", "x_var"), 
+    ("y_var", "y_var"),
+    ("view", "view_mode")
+]:
+    if url_key in st.query_params:
+        st.session_state[state_key] = st.query_params[url_key]
+
+
+# --- SETTING DEFAULTS --- If the app is opened for the first time (no URL params)
+
+if "dataset" not in st.session_state:
+    st.session_state.dataset = "New Jubilee"
+
+if "graph_type" not in st.session_state:
+    st.session_state.graph_type = "Line"
+
+if "x_var" not in st.session_state:
+    st.session_state.x_var = "time"
+
+if "y_var" not in st.session_state:
+    st.session_state.y_var = "Daily Value Imputed"
+
+if "view_mode" not in st.session_state:
+    st.session_state.view_mode = "Graphical"
+
+if "dataflow" not in st.session_state:
+    st.session_state.dataflow = "None"
+
+
+# --- GENERATING DYNAMIC URL LINKS ---
+
+# Dataset URLs
+url_bissell = build_url(dataset="Bissell Thrift")
+url_jubilee = build_url(dataset="New Jubilee")
+url_aeso = build_url(dataset="AESO")
+
+# Import & Export URLs
+url_export = build_url(dataflow="Export")
+
+# View Mode URLs -- Used for Switching Between Descriptive vs Graphical
+url_descriptive = build_url(view="Descriptive")
+url_graphical = build_url(view="Graphical")
+
+# Graph Visualization URLs
+url_bar = build_url(graph="Bar")
+url_line = build_url(graph="Line")
+url_area = build_url(graph="Area")
+url_scatter = build_url(graph="Scatter")
+url_histo = build_url(graph="Histogram")
+url_box = build_url(graph="Box")
+url_violin = build_url(graph="Violin")
+url_ecdf = build_url(graph="ecdf")
+url_matrix = build_url(graph="matrix")
+
+# X Variable URLs -- Time Series & Weather (Weather is Experimental)
+url_hourly = build_url(x_var="hourly")
+url_daily = build_url(x_var="daily")
+url_weekly = build_url(x_var="weekly")
+url_monthly = build_url(x_var="monthly")
+url_yearly = build_url(x_var="yearly")
+
+url_cloud = build_url(x_var="cloud")
+url_precip = build_url(x_var="precip")
+url_temp = build_url(x_var="temp")
+url_wind = build_url(x_var="wind")
+
+# Y Variable URLs -- Energy Outputs & Environmental Calculations
+
+url_output = build_url(y_var="output")
+url_ratio = build_url(y_var="ratio")
+
+url_carbon = build_url(y_var="carbon")
+url_trees = build_url(y_var="trees")
+url_cars = build_url(y_var="cars")
+url_homes = build_url(y_var="homes")
+url_coale = build_url(y_var="coal_e")
+url_coalt = build_url(y_var="coal_t")
+url_gas = build_url(y_var="gas")
+                                    
+
+
+
+# Global Variables to Use for State Session Updates & Calls
+df_selection = st.session_state.dataset
+vis_type = st.session_state.graph_type
+
+if vis_type in ['Pie', 'Tree']:
+    vis_type = 'Line'
+
+x_new = st.session_state.x_var
+
+if x_new == "month" or x_new == "projects":
+    x_new = "time"
+    
+y_var = st.session_state.y_var
+view_mode = st.session_state.view_mode
+dataflow = st.session_state.dataflow
+
+
+# State Session Checks for Current Dataset(s)
+if df_selection == "Bissell Thrift":
+    df = df_bissell.copy()
+    df_select = "Bissell Thrift Shop"
+    
+elif df_selection == "New Jubilee":
+    df = df_visser.copy()
+    df_select = "New Jubilee"
+
+else:
+    df = df_aeso.copy()
+    df_select = "AESO"
 
 
 
@@ -22,19 +152,14 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-
-# Loading in the Data (If Not Cached)
-df_visser, df_bissell = load_data()
-
 # Loading in the Icons
-icon_sys_info = get_base64_image("static/icons/icon_sysinfo.png")
-icon_impacts_info = get_base64_image("static/icons/icon_impacts.png")
-icon_ml_info = get_base64_image("static/icons/icon_ml.png")
-icon_home = get_base64_image("static/icons/icon_home.png")
+icon_sys_info = get_base64_image("static/icon_sysinfo.png")
+icon_impacts_info = get_base64_image("static/icon_impacts.png")
+icon_ml_info = get_base64_image("static/icon_ml.png")
+icon_home = get_base64_image("static/icon_home.png")
 
 # Title for the Page
 st.title("Exploratory Analytics")
-
 
 # This CSS Handles the Setup for the Canvas for the Icons and Clickable Regions for them...
 st.markdown("""
@@ -123,6 +248,145 @@ header[data-testid="stHeader"] {
     height: 50px;           /* adjust height if needed */
 }
 
+
+/* ===== TASK BAR MAIN CONTAINER ===== */
+.menu-bar {
+    background: linear-gradient(180deg, #7BA2E7, #357EC7, #3169C6, #7BA2E7);
+    padding: 6px 12px;
+    display: flex;
+    gap: 25px;
+    align-items: center;
+    border: 4px solid #cecece;
+    border-radius: 5px;
+    box-shadow: 0px 6px 50px 5px rgba(0,0,0,0.4);
+    font-family: Arial, sans-serif;
+}
+
+
+/* ===== MENU ITEMS ===== */
+.menu-item {
+    position: relative;
+    cursor: pointer;
+    font-size: 14px;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Hover effect like Windows */
+.menu-item:hover {
+    background-color: #cecece;
+    color: black;
+}
+
+/* ===== TASK BAR DROP DOWN MENUS CONTAINER ===== */
+.menu-bar {
+    background: linear-gradient(180deg, #7BA2E7, #357EC7, #3169C6, #7BA2E7);
+    padding: 6px 12px;
+    display: flex;       /* This makes items stay side-by-side */
+    flex-direction: row; /* Explicitly force horizontal layout */
+    width: 100%;  /* Prevents the bar from collapsing */
+    gap: 25px;
+    align-items: center;
+    border: 4px solid #cecece;
+    border-radius: 5px;
+    box-shadow: 0px 6px 50px 5px rgba(0,0,0,0.4);
+    font-family: Arial, sans-serif;
+}
+
+.dropdown {
+    display: none;
+    position: absolute;
+    top: 100%; /* Sticks it to the bottom of the menu-item */
+    left: 0;
+    background-color: #f0f0f0;
+    min-width: 160px;
+    z-index: 9999; /* Ensures it stays on top of other dashboard charts */
+    border: 3px solid #3170de;
+    border-radius: 8px;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+}
+
+/* ===== DROPDOWN ITEMS ===== */
+.dropdown div {
+    padding: 6px 10px;
+    cursor: pointer;
+    color: black;
+}
+
+/* Hover effect inside dropdown */
+.dropdown > div:hover {
+    background-color: #0078d7;
+    color: white;
+}
+
+.menu-leaf > button {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.menu-leaf:hover {
+    background-color: #0078d7;
+    color: white;
+}
+
+/* SHOW dropdown when hovering parent */
+.menu-item:hover .dropdown {
+    display: block;
+}
+
+
+/* ===== SUBMENU (nested dropdown) ===== */
+.submenu {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 100%; /* pushes it to the right */
+    background-color: #f0f0f0;
+    min-width: 140px;
+    border: 2px solid #3170de;
+    border-radius: 8px;
+    padding: 0;
+    z-index: 1001;
+}
+
+/* --- Highlighting Options in Nested Sub-Menu  */
+.submenu > .dropdown-item:hover {
+    background-color: #0078d7;
+    color: white;
+}
+
+/* Parent item needs positioning */
+.dropdown-item {
+    position: relative;
+}
+
+
+/* Only show submenu when hovering DIRECT parent */
+.dropdown-item:hover > .submenu {
+    display: block;
+}
+
+/* Push clock to the right side of the taskbar */
+.taskbar-clock {
+    margin-left: auto; 
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 4px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    min-width: 100px;
+    text-align: center;
+}
+
 /* ------------------ Sidebar gradient ------------------ */
 [data-testid="stSidebar"] {
     background: linear-gradient(180deg, #2257d6, #009cde, #009cde, #dcdcdc);
@@ -177,6 +441,34 @@ header[data-testid="stHeader"] {
 
 
 }
+
+/* 1. Hide the entire radio widget container */
+div[data-testid="stRadio"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0px !important;
+    margin: 0px !important;
+    padding: 0px !important;
+}
+
+/* 2. Hide the label specifically just in case */
+div[data-testid="stWidgetLabel"] {
+    display: none !important;
+}
+
+/* Remove hyperlink look */
+.dropdown a {
+    text-decoration: none !important;
+    color: black !important;
+    display: block;
+    padding: 6px 10px;
+}
+
+/* Hover effect like real menus */
+.dropdown a:hover {
+    background-color: #0078d7 !important;
+    color: white !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -230,8 +522,6 @@ st.markdown(f'''
 ''', unsafe_allow_html=True)
 
 
-
-# ------------------------------------------------ CODE & DATA AREA -------------------------------------------------------------------
 # Clickable-Icon Navigation Area -- Routing to Other Pages -- this is what allows interactivity 
 
 col1, col2, col3, col4 = st.columns(4)
@@ -253,107 +543,615 @@ with col4:
 
 
 
-# DataFrame Selection for Solar Site
-df_select = st.radio("Select Solar Site:", ['Bissell Thrift Shop', 'New Jubilee Greenhouse'])
-
-if df_select == 'Bissell Thrift Shop':
-    df = df_bissell
-
-elif df_select == 'New Jubilee Greenhouse':
-    df = df_visser
 
 
-st.divider()
 
-
-filt_col_1, filt_col_2 = st.columns(2)
-
-with filt_col_1:
-    range_select = st.radio("Select Interval Type:", ['Daily', 'Weekly', 'Monthly'], horizontal=True)
-
-with filt_col_2:
-    year_select = st.selectbox("Select a Year:", (2025, 2026))
-
-if year_select:
- 
-    df['time'] = pd.to_datetime(df['time'])
-    df_filtered = df[df['time'].dt.year == year_select]
-
-st.header(f"{range_select} Generation (kWh) for {df_select}")
-tab_1, tab_2 = st.tabs(['Graph Data', 'Sheet Data'])
-
-if range_select == 'Daily':
-
-    with tab_1:
-        if year_select:
-            st.bar_chart(df_filtered['Daily Value Imputed'])
-
-        else:
-            df['time'] = pd.to_datetime(df['time'])
-            df = df.set_index('time')
-
-            st.bar_chart(df['Daily Value Imputed'])
-
-    with tab_2:
-        if year_select:
+if df_select == "AESO":
+    
+    if y_var not in [
+        "max_cap", 
+        "total_gen",
+        "sys_cap",
+        "sys_gen",
+        "pool_price",
+        "pool_forecast",
+        "rolling_avg"]:
+        
+        y_var = "max_cap"
+    
+    if x_new != "DateTime":
+        x_new = "DateTime"
+        
+        
+        
+        
+    # Creating AESO Specific URL Keys for Variables
+    url_max = build_url(y_var="max_cap")
+    url_tot = build_url(y_var="total_gen")
+    url_sys = build_url(y_var="sys_cap")
+    url_gen = build_url(y_var="sys_gen")
+    url_pool = build_url(y_var="pool_price")
+    url_fpool = build_url(y_var="pool_forecast")
+    url_rolling = build_url(y_var="rolling_avg")
+    
+    # This HTML File Handles the Task Bar Menu Labelling Control & Drop-Down Menu handling & Drop-Down Sub
+    st.markdown(f"""
+    <div class="menu-bar">
+        <div class="menu-item">
+            Data
+            <div class="dropdown">
+                <div class="dropdown-item">
+                <span style="display:flex; justify-content:space-between;">
+                    Change Dataset
+                </span>
+                <div class="submenu">
+                    <div class="dropdown-item">
+                        <span style="display:flex; justify-content:space-between;">
+                            SPICE 
+                        </span>
+                        <div class="submenu">
+                            <a href="{url_jubilee}" target="_self">New Jubilee</a>
+                            <a href="{url_bissell}" target="_self">Bissell Thrift</a>
+                    </div>
+                </div>
+                <div class="dropdown-item">
+                <span style="display:flex; justify-content:space-between;">
+                    AESO
+                </span>
+                <div class="submenu">
+                    <a href="{url_aeso}" target="_self">Generation & Pool Markets</a>
+                </div>
+            </div>
+        </div>
+    </div>
+                <div>Import Dataset</div>
+                <a href="{url_export}" target="_self">Export Dataset</a>
+            </div>
+        </div>
+        <div class="menu-item">
+            Edit
+            <div class="dropdown">
+                <div>Undo Action</div>
+                <div>Redo Action</div>
+            </div>
+        </div>
+        <div class="menu-item">
+            View
+            <div class="dropdown">
+                <a href="{url_descriptive}" target="_self">Descriptive</a>
+                <a href="{url_graphical}" target="_self">Graphical</a>
+            </div>
+        </div>
+        <div class="menu-item">
+            Format
+            <div class="dropdown">
+                <div class="dropdown-item">
+                    Visualization
+                    <div class="submenu">
+                        <a href="{url_line}" target="_self">Line</a> 
+                        <a href="{url_bar}" target="_self">Bar</a>
+                        <a href="{url_area}" target="_self">Area</a>
+                        <a href="{url_scatter}" target="_self">Scatter</a>
+                        <a href="{url_histo}" target="_self">Histogram</a>
+                        <a href="{url_box}" target="_self">Box Plot</a>
+                        <a href="{url_violin}" target="_self">Violin Plot</a>
+                        <a href="{url_ecdf}" target="_self">Cumulative</a>
+                        <a href="{url_matrix}" target="_self">Matrix</a>
+                    </div>
+                </div>
+                <div class="dropdown-item">
+                    Variables
+                    <div class="submenu">
+                        <div class="dropdown-item">
+                            X Variable 
+                            <div class="submenu">
+                                <div class="dropdown-item">
+                                    Time-Series
+                                    <div class="submenu">
+                                        <a href="{url_hourly} target="_self">Hourly</a>
+                                        <a href="{url_daily}" target="_self">Daily</a>
+                                        <a href="{url_weekly}" target="_self">Weekly</a>
+                                        <a href="{url_monthly}" target="_self">Monthly</a>
+                                        <a href="{url_yearly}" target="_self">Yearly</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dropdown-item">
+                            Y Variable
+                            <div class="submenu">
+                                <div class="dropdown-item">
+                                    Energy
+                                    <div class="submenu">
+                                        <a href="{url_max}" target="_self">Max. Cap</a>
+                                        <a href="{url_tot}" target="_self">Total Gen</a>
+                                        <a href="{url_sys}" target="_self">System Cap</a>
+                                        <a href="{url_gen}" target="_self">System Gen</a>
+                                    </div>
+                                </div>
+                                <div class="dropdown-item">
+                                    Market
+                                    <div class="submenu">
+                                        <a href="{url_pool}" target="_self">Pool Price</a>
+                                        <a href="{url_fpool}" target="_self">Pool (Forecast)</a>
+                                        <a href="{url_rolling} target="_self"> Rolling (30 Day)</a>
+                                    </div>
+                                </div>
+                            </div>  
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="menu-item">
+            Help
+            <div class="dropdown">
+                <div>Dashboard Help</div>
+                <div>Report a Bug</div>
+                <div>About the Dashboard</div>
+            </div>
+    </div>
+    <div class="taskbar-clock" id="taskbar-clock">00:00:00 PM</div>
+    <script>
+        function updateTaskbarClock() {{
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
             
-            st.dataframe(df_filtered[['time', 'Daily Value Imputed']])
-
-        else:    
-            st.dataframe(df[['time', 'Daily Value Imputed']])
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const hoursStr = String(hours).padStart(2, '0');
     
-
+            const timeString = hoursStr + ":" + minutes + ":" + seconds + " " + ampm;
+            
+            // Find the clock element in the parent document
+            const clockElement = document.getElementById('taskbar-clock');
+            if (clockElement) {{
+                clockElement.textContent = timeString;
+            }}
+        }}
     
-
-elif range_select == 'Weekly':
-
-    if year_select:
-        df_filtered['time'] = pd.to_datetime(df_filtered['time'])
-        df_filtered = df_filtered.set_index('time')
-
-        df_weekly = df_filtered.resample('W').agg({
-        'Daily Value Imputed': 'sum'
-        })
-
+        // Update every second
+        setInterval(updateTaskbarClock, 1000);
+        updateTaskbarClock();
+    </script>
+    """, unsafe_allow_html=True)
+    
+    # ---------------------------------- CODE SECTION FOR GUI USER INPUT to SYSTEM OUTPUTS --------------------------------------------------------------
+    
+    
+    
+    # Checking for Import or Export Condition
+    
+    if dataflow == "Export":
+        csv = df.to_csv(index=False).encode("utf-8")
+        st.download_button("Download CSV", data=csv, file_name="exported_dataset.csv", mime="text/csv")
+        dataflow = "None"
+    
+    
+    # ------------- This Section Handles the Y-Variables for Visuals --------
+ 
+    
+    if y_var == "max_cap":
+        y_var = "maximum_capacity__solar"
+        data_action = "Max Solar Capacity"
+    
+    if y_var == "total_gen":
+        y_var == "total_generation__solar"
+        data_action = "Total Solar Generation"
+    
+    if y_var == "sys_cap":
+        y_var = "system_capacity__solar"
+        data_action = "System (Solar) Capacity"
+    
+    if y_var == "sys_gen":
+        y_var = "system_generation__solar"
+        data_action = "System (Solar) Generation"
+    
+    if y_var == "pool_price":
+        data_action = "Pool Prices"
+    
+    if y_var == "pool_forecast":
+        y_var = "forecast_pool_price"
+        data_action = "Forecasted Pool Prices"
+    
+    if y_var == "rolling_avg":
+        y_var = "rolling_30day_avg"
+        data_action = "Rolling 30-Day Average"  
+    
+    
+    # ------------------- This Branch will handle the X-Variable Handling -------------
+    if x_new in ["hourly", "daily", "weekly", "monthly", "yearly"]:
+        
+        if x_new == "hourly":
+            df = df
+            range_select = "Hourly"
+            
+        elif x_new == "weekly":
+            df = weekly_agg(df, y_new)
+            range_select = "Weekly"
+    
+        elif x_new == "monthly":
+            df = monthly_agg(df, y_new)
+            range_select = "Monthly"
+        
+        elif x_new == "daily":
+            df = aeso_daily_agg(df)
+            range_select = "Daily"
+        
+        elif x_new == "yearly":
+            df = aeso_yearly_agg(df)
+            range_select = "Yearly"
+    
+        x_new = "DateTime"
+    
+    
+    
+    # Application of the Changes & Session Save State
+    
+    
+    if view_mode == "Descriptive":
+        df_copy = df.copy()
+        
+        st.header(f"Descriptive Analytics for {df_select}")
+        st.dataframe(df_copy.describe())
+        st.divider()
+    
+        st.header(f"Data-Types for {df_select}")
+        st.dataframe(df_copy.dtypes)
+    
+        st.header(f"Missing & Invalid Values for {df_select}")
+        st.dataframe(df.isnull().sum())
+    
+        st.header(f"Correlation Matrix for {df_select}")
+        st.dataframe(df_copy.corr(numeric_only=True))
     
     else:
-        df['time'] = pd.to_datetime(df['time'])
-        df = df.set_index('time')
-
-        df_weekly = df.resample('W').agg({
-        'Daily Value Imputed': 'sum'
-        })
-
-    with tab_1:
-        st.dataframe(df_weekly)
+        try:
+            plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
+        except NameError:
+            data_action = "Generation"
+            plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
+        
     
-    with tab_2:
-        st.line_chart(df_weekly)
+    components.html("""
+    <script>
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const timeString = `${String(hours).padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
     
+            // REACH OUT of the component's iframe into the main page
+            const clock = window.parent.document.getElementById('taskbar-clock');
+            if (clock) {
+                clock.textContent = timeString;
+            }
+        }
+        
+        // Update every second
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+    """, height=0)     
 
-elif range_select == 'Monthly':
 
-    if year_select:
-        monthly_summary = monthly_output_sums(df_filtered)
+
+
+# ----------------------------- SECTION FOR SPICE DATA ------------------------------------ SECTIOM FOR SPICE DATA ---------------------------- ###############
+
+
+else:
+    
+    
+    # This HTML File Handles the Task Bar Menu Labelling Control & Drop-Down Menu handling & Drop-Down Sub
+    st.markdown(f"""
+    <div class="menu-bar">
+        <div class="menu-item">
+            Data
+            <div class="dropdown">
+                <div class="dropdown-item">
+                <span style="display:flex; justify-content:space-between;">
+                    Change Dataset
+                </span>
+                <div class="submenu">
+                    <div class="dropdown-item">
+                        <span style="display:flex; justify-content:space-between;">
+                            SPICE 
+                        </span>
+                        <div class="submenu">
+                            <a href="{url_jubilee}" target="_self">New Jubilee</a>
+                            <a href="{url_bissell}" target="_self">Bissell Thrift</a>
+                    </div>
+                </div>
+                <div class="dropdown-item">
+                <span style="display:flex; justify-content:space-between;">
+                    AESO
+                </span>
+                <div class="submenu">
+                    <a href="{url_aeso}" target="_self">Generation & Pool Markets</a>
+                </div>
+            </div>
+        </div>
+    </div>
+                <div>Import Dataset</div>
+                <a href="{url_export}" target="_self">Export Dataset</a>
+            </div>
+        </div>
+        <div class="menu-item">
+            Edit
+            <div class="dropdown">
+                <div>Undo Action</div>
+                <div>Redo Action</div>
+            </div>
+        </div>
+        <div class="menu-item">
+            View
+            <div class="dropdown">
+                <a href="{url_descriptive}" target="_self">Descriptive</a>
+                <a href="{url_graphical}" target="_self">Graphical</a>
+            </div>
+        </div>
+        <div class="menu-item">
+            Format
+            <div class="dropdown">
+                <div class="dropdown-item">
+                    Visualization
+                    <div class="submenu">
+                        <a href="{url_line}" target="_self">Line</a> 
+                        <a href="{url_bar}" target="_self">Bar</a>
+                        <a href="{url_area}" target="_self">Area</a>
+                        <a href="{url_scatter}" target="_self">Scatter</a>
+                        <a href="{url_histo}" target="_self">Histogram</a>
+                        <a href="{url_box}" target="_self">Box Plot</a>
+                        <a href="{url_violin}" target="_self">Violin Plot</a>
+                        <a href="{url_ecdf}" target="_self">Cumulative</a>
+                        <a href="{url_matrix}" target="_self">Matrix</a>
+                    </div>
+                </div>
+                <div class="dropdown-item">
+                    Variables
+                    <div class="submenu">
+                        <div class="dropdown-item">
+                            X Variable 
+                            <div class="submenu">
+                                <div class="dropdown-item">
+                                    Time-Series
+                                    <div class="submenu">
+                                        <a href="{url_daily}" target="_self">Daily</a>
+                                        <a href="{url_weekly}" target="_self">Weekly</a>
+                                        <a href="{url_monthly}" target="_self">Monthly</a>
+                                        <a href="{url_yearly}" target="_self">Yearly</a>
+                                    </div>
+                                </div>
+                                <div class="dropdown-item">
+                                    Weather
+                                    <div class="submenu">
+                                        <a href="{url_cloud}" target="_self">Cloud Cover</a>
+                                        <a href="{url_precip}" target="_self">Precipitation</a>
+                                        <a href="{url_temp}" target="_self">Air Temp</a>
+                                        <a href="{url_wind}" target="_self">Wind Speed</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dropdown-item">
+                            Y Variable
+                            <div class="submenu">
+                                <div class="dropdown-item">
+                                    Energy
+                                    <div class="submenu">
+                                        <a href="{url_output}" target="_self">Solar Output</a>
+                                        <a href="{url_ratio}" target="_self">Perf. Ratio</a>
+                                    </div>
+                                </div>
+                                <div class="dropdown-item">
+                                    Enviro
+                                    <div class="submenu">
+                                        <a href="{url_carbon}" target="_self">CO2 Avoided</a>
+                                        <a href="{url_trees}" target="_self">Trees Saved</a>
+                                        <a href="{url_cars}" target="_self">Cars Equivalent</a>
+                                        <a href="{url_homes}" target="_self">Homes Powered</a>
+                                        <a href="{url_coale}" target="_self">Coal Emission Avoided</a>
+                                        <a href="{url_coalt}" target="_self">Coal Weight Avoided</a>
+                                        <a href="{url_gas}" target="_self">Gas Saved</a>
+                                    </div>
+                                </div>
+                            </div>  
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="menu-item">
+            Help
+            <div class="dropdown">
+                <div>Dashboard Help</div>
+                <div>Report a Bug</div>
+                <div>About the Dashboard</div>
+            </div>
+    </div>
+    <div class="taskbar-clock" id="taskbar-clock">00:00:00 PM</div>
+    <script>
+        function updateTaskbarClock() {{
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const hoursStr = String(hours).padStart(2, '0');
+    
+            const timeString = hoursStr + ":" + minutes + ":" + seconds + " " + ampm;
+            
+            // Find the clock element in the parent document
+            const clockElement = document.getElementById('taskbar-clock');
+            if (clockElement) {{
+                clockElement.textContent = timeString;
+            }}
+        }}
+    
+        // Update every second
+        setInterval(updateTaskbarClock, 1000);
+        updateTaskbarClock();
+    </script>
+    """, unsafe_allow_html=True)
+    
+    
+    # ---------------------------------- CODE SECTION FOR GUI USER INPUT to SYSTEM OUTPUTS --------------------------------------------------------------
+    
+    
+    
+    # Checking for Import or Export Condition
+    
+    if dataflow == "Export":
+        csv = df.to_csv(index=False).encode("utf-8")
+        st.download_button("Download CSV", data=csv, file_name="exported_dataset.csv", mime="text/csv")
+        dataflow = "None"
+    
+    
+    # ------------- This Section Handles the Y-Variables for Visuals --------
+    
+    if y_var == "output":
+        y_var = "Daily Value Imputed"
+        data_action = "Generation"
+    
+    if y_var == "ratio":
+        y_var = "PR_Daily"
+        data_action = "Perf. Ratio"
+    
+    if y_var == "carbon":
+        y_var = "co2_avoided"
+        data_action = "CO2 Avoided"
+    
+    if y_var == "trees":
+        y_var = "trees_saved"
+        data_action = "Trees Saved"
+    
+    if y_var == "cars":
+        y_var = "cars_offroad"
+        data_action = "Cars Neutralized"
+    
+    if y_var == "homes":
+        y_var = "homes_powered"
+        data_action = "Homes Powered"
+    
+    if y_var == "coal_e":
+        y_var = "coal_emission_avoided"
+        data_action = "Coal Avoided (Emissive)"
+    
+    if y_var == "coal_t":
+        y_var = "coal_tonnage_avoided"
+        data_action = "Coal Avoided (Tonnage)"
+    
+    if y_var == "gas":
+        y_var = "gas_saved"
+        data_action = "Gasoline Saved"
+    
+    
+    
+    # ------------------- This Branch will handle the X-Variable Handling -------------
+    if x_new in ["daily", "weekly", "monthly", "yearly"]:
+    
+        if x_new == "weekly":
+            df = weekly_agg(df, y_new)
+            range_select = "Weekly"
+    
+        elif x_new == "monthly":
+            df = monthly_agg(df, y_new)
+            range_select = "Monthly"
+        
+        elif x_new == "daily":
+            df = df
+            range_select = "Daily"
+    
+        x_new = "time"
     
     else:
-        monthly_summary = monthly_output_sums(df)
-
-    with tab_1:
-        st.dataframe(monthly_summary)
+        if x_new == "cloud":
+            x_new = "cloud_cover (%)"
+        
+        elif x_new == "precip":
+            x_new = "precipitation (mm)"
+        
+        elif x_new == "temp":
+            x_new = "temp_air"
+        
+        elif x_new == "wind":
+            x_new = "wind_speed"
     
-    with tab_2:
-        st.line_chart(monthly_summary)
+    
+    # Application of the Changes & Session Save State
+    
+    
+    if view_mode == "Descriptive":
+        df_copy = df.copy()
+        
+        st.header("Descriptive Analytics")
+        st.dataframe(df_copy.describe())
+        st.divider()
+    
+        st.header("Data-Types")
+        st.dataframe(df_copy.dtypes)
+    
+        st.header("Missing & Invalid Values")
+        st.dataframe(df.isnull().sum())
+    
+        st.header("Correlation Matrix")
+        st.dataframe(df_copy.corr(numeric_only=True))
+    
+    else:
+        try:
+            plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
+        except NameError:
+            data_action = "Generation"
+            plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
+        
+    
+    df = df_visser if st.session_state.dataset == "New Jubilee" else df_bissell
+    
+    components.html("""
+    <script>
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const timeString = `${String(hours).padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
+    
+            // REACH OUT of the component's iframe into the main page
+            const clock = window.parent.document.getElementById('taskbar-clock');
+            if (clock) {
+                clock.textContent = timeString;
+            }
+        }
+        
+        // Update every second
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+    """, height=0)    
+    
+    
+    
+    
+
+
+
+
 
     
 
-# Setting up Tabs on for Descriptive
-tab1 = st.tabs(["Overview"])
-
-with tab1:
-
-    st.write("Dataset Description")
-    st.write(df.describe())
-
-    st.write("Dataset Null Count")
-    st.write(df.isnull().sum())

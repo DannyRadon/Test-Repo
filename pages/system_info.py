@@ -7,16 +7,16 @@ from helpers.data_load import *
 st.title("System Information")
 st.divider()
 
-df_visser, df_bissell = load_data()
+df_visser, df_bissell, df_aeso = load_data()
 
 # ------------------------------------ CSS & HTML GRAPHICAL SETUP AREA ---------------------------------------------------------------
 
 
 # Loading in the Icons
-icon_eda_info = get_base64_image("static/icons/icon_analytics.png")
-icon_impacts_info = get_base64_image("static/icons/icon_impacts.png")
-icon_ml_info = get_base64_image("static/icons/icon_ml.png")
-icon_home = get_base64_image("static/icons/icon_home.png")
+icon_eda_info = get_base64_image("static/icon_analytics.png")
+icon_impacts_info = get_base64_image("static/icon_impacts.png")
+icon_ml_info = get_base64_image("static/icon_ml.png")
+icon_home = get_base64_image("static/icon_home.png")
 
 
 # This CSS creates the Gradient Background -- The Main Background
@@ -116,6 +116,7 @@ header[data-testid="stHeader"] {
     background: linear-gradient(135deg, #0054e3, #3b77bc, #009cde) !important; /* gradient */
     height: 50px;           /* adjust height if needed */
 }
+
 
 /* ------------------ Sidebar gradient ------------------ */
 [data-testid="stSidebar"] {
@@ -247,12 +248,10 @@ with col4:
     if st.button(" ", key="ml_info_btn"):
         st.switch_page("pages/ml.py")
 
-
-
-
+st.divider()
 
 # DataFrame Selection for Solar Site
-df_select = st.radio("Select Solar Site:", ['Bissell Thrift Shop', 'New Jubilee Greenhouse'])
+df_select = st.radio("Select Solar Site:", ['Bissell Thrift Shop', 'New Jubilee Greenhouse', 'Idylwylde Community League', 'St. Augustine Anglican Church'])
 
 
 
@@ -264,7 +263,6 @@ if df_select == 'Bissell Thrift Shop':
     total_gen = total_generated(df_bissell).round()
     total_load_hours = total_load_hours(df, sys_size)
     
-
     tab_1, tab_2, tab_3, tab_4 = st.tabs(["General Overview", "Technical Specs", "Financial Info", "Location & Contact Info"])
 
     # This is for the 'General Overview' Tab on the Home Page
@@ -273,15 +271,8 @@ if df_select == 'Bissell Thrift Shop':
         info_col_1, info_col_2, info_col_3 = st.columns(3)
 
         with info_col_1:
-
-            
             st.metric("Status:", "Active")
 
-
-            
-
-
-            
         with info_col_2:
             st.metric("Total Load Hours:", total_load_hours)
             st.metric("Comp. Date:", "Oct-2023")
@@ -433,3 +424,167 @@ elif df_select == 'New Jubilee Greenhouse':
         with info_col_2:
             st.subheader("Contact Info")
             st.write("PLEASE ENTER CONTACT INFO HERE")
+
+
+
+
+
+elif df_select == "Idylwylde Community League":
+    
+    sys_size = 12.43
+      
+    tab_1, tab_2, tab_3, tab_4 = st.tabs(["General Overview", "Technical Specs", "Financial Info", "Location & Contact Info"])
+
+    # This is for the 'General Overview' Tab on the Home Page
+    with tab_1:
+
+        info_col_1, info_col_2, info_col_3 = st.columns(3)
+
+        with info_col_1:
+            st.metric("Status:", "Active")
+            st.metric("System Size:", sys_size)
+    
+
+
+        with info_col_2:
+            st.metric("Comp. Date:", "Nov-2025")
+            
+        with info_col_3:
+            st.metric("Cost/kW Installed ($)", 1377.58)
+    
+        
+        # This is for the 'Technical Specs' Tab on the Home Page
+        with tab_2:
+    
+            info_col_1, info_col_2, info_col_3, info_col_4 = st.columns(4)
+    
+            with info_col_1:
+                st.metric("System Size (kW):", sys_size)
+                st.metric("Total A/C Cap (kW):", 12.43)
+                st.metric("Total D/C Cap (kW)", 16.6)
+                st.write("Perf. Warranty:", "27-Year")
+        
+            with info_col_2:
+    
+                st.metric("Modules: 27x Thornova", "615W")
+                st.metric("Type:", "Bi-Facial")
+                st.metric("Prod. Warranty:", "12 Years")
+            
+                
+            with info_col_3:
+                st.write("Inverters: 14x APSystems DS3 Micro")
+
+            
+    
+        # This is for the Financial Info Tab in the Home page
+        with tab_3:
+    
+            info_col_1, info_col_2, info_col_3, info_col_4 = st.columns(4)
+    
+            with info_col_1:
+    
+                st.metric("Total Cost ($):", 17123.33)
+                st.metric("Downpayment ($):", 17000)
+                st.metric("Investment ($):", 18000)
+            
+            with info_col_2:
+    
+                st.metric("Model:", "Class-B")
+                st.metric("Tax:", "GST-5%")
+            
+            with info_col_3:
+                st.metric("Lease:", "5 Years")
+                st.metric("Annual. Pay ($):", 3924.96)
+                st.metric("Monthly Pay ($):", 327.08)
+                st.metric("Int. Rate (%):", 5.5)
+        
+        with tab_4:
+    
+            info_col_1, info_col_2 = st.columns(2)
+    
+            with info_col_1:
+                st.subheader("Address")
+                st.write("8631 81 St NW, Edmonton")
+            
+            with info_col_2:
+                st.subheader("Contact Info")
+                st.write("PLEASE ENTER CONTACT INFO HERE")
+
+
+elif df_select == "St. Augustine Anglican Church":
+    
+    sys_size = 19
+      
+    tab_1, tab_2, tab_3, tab_4 = st.tabs(["General Overview", "Technical Specs", "Financial Info", "Location & Contact Info"])
+
+    # This is for the 'General Overview' Tab on the Home Page
+    with tab_1:
+
+        info_col_1, info_col_2, info_col_3 = st.columns(3)
+
+        with info_col_1:
+            st.metric("System Size:", sys_size)
+            st.metric("Status:", "Active")    
+
+
+        with info_col_2:
+            st.metric("Comp. Date:", "Jan-2026")
+            
+        with info_col_3:
+            st.metric("Cost/kW Installed ($)", 3525.23)
+    
+        
+        # This is for the 'Technical Specs' Tab on the Home Page
+        with tab_2:
+    
+            info_col_1, info_col_2, info_col_3, info_col_4 = st.columns(4)
+    
+            with info_col_1:
+                st.metric("System Size (kW):", sys_size)
+                st.metric("Total A/C Cap (kW):", 19)
+                st.metric("Total D/C Cap (kW)", 25.215)
+                st.metric("Perf. Warranty:", "25-Year")
+        
+            with info_col_2:
+    
+                st.metric("Modules: 41x Longi", "615W")
+                st.metric("Type:", "N/A")
+                st.metric("Prod. Warranty:", "12 Years")
+            
+                
+            with info_col_3:
+                st.write("Inverters: SolarEdge 11.4kW + 7.6kW")
+                
+
+            
+    
+        # This is for the Financial Info Tab in the Home page
+        with tab_3:
+    
+            info_col_1, info_col_2, info_col_3, info_col_4 = st.columns(4)
+    
+            with info_col_1:
+    
+                st.metric("Total Cost ($):", 66979.44)
+                st.metric("Downpayment ($):", 0)
+                st.metric("Investment ($):", 0)
+            
+            with info_col_2:
+    
+                st.metric("Model:", "Diocese (Internal Financing)")
+                st.metric("Tax:", "GST-5%")
+            
+            with info_col_3:
+                st.metric("Lease:", "N/A")
+        
+        with tab_4:
+    
+            info_col_1, info_col_2 = st.columns(2)
+    
+            with info_col_1:
+                st.subheader("Address")
+                st.write("6110 Fulton Rd NW, Edmonton")
+            
+            with info_col_2:
+                st.subheader("Contact Info")
+                st.write("PLEASE ENTER CONTACT INFO HERE")

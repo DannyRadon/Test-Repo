@@ -7,7 +7,7 @@ from helpers.data_funcs import *    # Importing Helper Functions for Dashboard
 
 
 # Initializing the Data into Dashboard
-df_visser, df_bissell = load_data()     # Loading the datasets
+df_visser, df_bissell, df_aeso = load_data()     # Loading the datasets
 
 
 
@@ -15,12 +15,12 @@ df_visser, df_bissell = load_data()     # Loading the datasets
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
-
+#
 
 # ---------------------------------------------- CSS & HTML DASHBOARD GRAPHICAL SETUP AREA -------------------------------------------------
 
 
-# This CSS creates the Gradient Background 
+# This CSS creates the Gradient Background -- The Main Background of the PAge
 st.markdown("""
 <style>
 .stApp {
@@ -34,7 +34,9 @@ st.markdown("""
 
 
 
-# This CSS Handles the Display of the Icons and the Clickable Regions for them
+# This CSS Section Handles the Display of the Icons and the Clickable Regions for them 
+
+# This Handles the "Card" Background for the Icons along with Icon Image Size (Default Card Color - Orange)
 st.markdown("""
 <style>
 .icon-card {
@@ -58,7 +60,6 @@ st.markdown("""
     transition: transform 0.2s ease;
 }
             
-
 .icon-card:hover {
     transform: scale(1.05);
     box-shadow: 0px 6px 18px rgba(0,0,0,0.6);
@@ -81,6 +82,8 @@ st.markdown("""
     margin-bottom: 5px;
 }
 
+
+
 /* Transparent overlay button for click */
 .stButton > button {
     position: absolute;
@@ -101,11 +104,15 @@ st.markdown("""
     color: transparent !important;
 }
 
+
+
 /* Top bar background */
 header[data-testid="stHeader"] {
     background: linear-gradient(135deg, #0054e3, #3b77bc, #009cde) !important; /* gradient */
     height: 50px;           /* adjust height if needed */
 }
+
+
 
 
 /* ------------------ Sidebar gradient ------------------ */
@@ -171,11 +178,12 @@ header[data-testid="stHeader"] {
 st.title("SPICE Dashboard - Home Page")
 
 # Pre-load icons
-icon_sys_info = get_base64_image("static/icons/icon_sysinfo.png")
-icon_eda_info = get_base64_image("static/icons/icon_analytics.png")
-icon_impacts_info = get_base64_image("static/icons/icon_impacts.png")
-icon_ml_info = get_base64_image("static/icons/icon_ml.png")
-icon_home = get_base64_image("static/icons/icon_home.png")
+icon_sys_info = get_base64_image("static/icon_sysinfo.png")
+icon_eda_info = get_base64_image("static/icon_analytics.png")
+icon_impacts_info = get_base64_image("static/icon_impacts.png")
+icon_ml_info = get_base64_image("static/icon_ml.png")
+icon_home = get_base64_image("static/icon_home.png")
+
 
 
 
@@ -244,12 +252,5 @@ with col3:
 with col4:
     if st.button(" ", key="ml_info_btn"):
         st.switch_page("pages/ml.py")
-
-
-# Building the Home Page ---------------------------------------------------------------------------------------------------
-
-
-
-
 
 
