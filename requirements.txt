@@ -1,6 +1,6 @@
 matplotlib==3.10.8
 numpy==2.4.3
-pandas==2.9.9
+pandas==2.2.3
 plotly==6.6.0
 qrcode==8.2
 scikit_learn==1.8.0
