@@ -573,6 +573,7 @@ if df_select == "AESO":
     url_pool = build_url(y_var="pool_price")
     url_fpool = build_url(y_var="pool_forecast")
     url_rolling = build_url(y_var="rolling_avg")
+    url_monthly_multi = build_url(graph="monthly_multi")
     
     # This HTML File Handles the Task Bar Menu Labelling Control & Drop-Down Menu handling & Drop-Down Sub
     st.markdown(f"""
@@ -653,6 +654,7 @@ if df_select == "AESO":
                                         <a href="{url_weekly}" target="_self">Weekly</a>
                                         <a href="{url_monthly}" target="_self">Monthly</a>
                                         <a href="{url_yearly}" target="_self">Yearly</a>
+                                        <a href="{url_monthly_multi}" target="_self">Monthly Multi-Year</a>
                                     </div>
                                 </div>
                             </div>
@@ -719,6 +721,8 @@ if df_select == "AESO":
     </script>
     """, unsafe_allow_html=True)
     
+    
+        
     # ---------------------------------- CODE SECTION FOR GUI USER INPUT to SYSTEM OUTPUTS --------------------------------------------------------------
     
     
@@ -790,7 +794,45 @@ if df_select == "AESO":
     
     
     # Application of the Changes & Session Save State
+    # CHECK CHECK CONDITION FOR LAST MINUTE VISUALS PRE-DEMO
+    if vis_type.lower() == "monthly_multi":
     
+        df_copy = df.copy()
+    
+        # Ensure datetime exists
+        df_copy["DateTime"] = pd.to_datetime(df_copy["DateTime"])
+    
+        # Extract year + month
+        df_copy["year"] = df_copy["DateTime"].dt.year
+        df_copy["month"] = df_copy["DateTime"].dt.month
+    
+        # Aggregate
+        monthly_generation = (
+            df_copy
+            .groupby(['year', 'month'])[y_var]  # <-- adjust if needed
+            .sum()
+            .reset_index()
+        )
+    
+        fig = px.line(
+            monthly_generation,
+            x='month',
+            y=y_var,
+            color='year',
+            title=f'Monthly {y_var} Over Time',
+            labels={
+                'month': 'Month',
+                y_var: '(MWh)',
+                'year': 'Year'
+            }
+        )
+    
+        fig.update_layout(
+            xaxis=dict(tickmode='linear', tick0=1, dtick=1),
+            template="presentation",  # or "plotly_white"
+            paper_bgcolor="rgba(0,0,0,0)",   # transparent background
+            plot_bgcolor="rgba(56,196,1,0)"            
+        )    
     
     if view_mode == "Descriptive":
         df_copy = df.copy()
@@ -810,7 +852,12 @@ if df_select == "AESO":
     
     else:
         try:
-            plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
+            
+            if vis_type.lower() == "monthly_multi":
+                st.plotly_chart(fig, use_container_width=True)
+            
+            else:
+                plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
         except NameError:
             data_action = "Generation"
             plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
@@ -840,7 +887,7 @@ if df_select == "AESO":
         setInterval(updateClock, 1000);
         updateClock();
     </script>
-    """, height=0)     
+    """, height=0)         
 
 
 
