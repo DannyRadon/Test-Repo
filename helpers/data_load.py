@@ -12,8 +12,8 @@ import numpy as np
 def load_data():
 
     # This is just a placeholder for dev purposes, the true data link will probably be cloud
-    file_visser = '/workspaces/Test-Repo/data/visser_data_imputed.csv'
-    file_bissell = '/workspaces/Test-Repo/data/bissell_data_imputed.csv'
+    file_visser = 'data/visser_data_imputed.csv'
+    file_bissell = 'data/bissell_data_imputed.csv'
 
    
     df_visser = pd.read_csv(file_visser)
