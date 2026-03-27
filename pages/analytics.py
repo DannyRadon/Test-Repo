@@ -1020,7 +1020,8 @@ else:
     
     
     # ------------- This Section Handles the Y-Variables for Visuals --------
-    
+    if y_var not in ["output", "ratio", "carbon", "trees", "cars", "homes", "coal_e", "coal_t", "gas"]:
+        y_var = "output"
     if y_var == "output":
         y_var = "Daily Value Imputed"
         data_action = "Generation"
