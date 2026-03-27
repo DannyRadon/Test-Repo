@@ -629,6 +629,9 @@ st.markdown(f"""
 
 
 # ------------------------------------------------ CODE & DATA AREA -------------------------------------------------------------------
+if y_new not in ["output", "ratio", "carbon", "trees", "cars", "homes", "coal_e", "coal_t", "gas"]:
+    y_new = "output"
+
 if y_new == "output":
     y_new = "Daily Value Imputed"
     data_action = "Generation"
