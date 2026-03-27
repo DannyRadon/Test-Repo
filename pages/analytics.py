@@ -739,7 +739,7 @@ if df_select == "AESO":
         data_action = "Max Solar Capacity"
     
     if y_var == "total_gen":
-        y_var == "total_generation__solar"
+        y_var = "total_generation__solar"
         data_action = "Total Solar Generation"
     
     if y_var == "sys_cap":
