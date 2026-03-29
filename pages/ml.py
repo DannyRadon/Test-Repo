@@ -722,7 +722,28 @@ elif view_type == "insights":
             st.header("Feature Importance")
             st.divider()
             st.write("The method of observing a Model's 'Feature Importance' is essentially a technique that will rank the input variables (features) given to the Model based on those features' influence on a Model's prediction.")
+            st.write("This helps to audit the Model's logic and validate decisions against the domain as well as indentifying data leakages. It will tell which variables (features) mattered the most to the Model.")
+            st.write("It is important to note that Feature Importance can tell you which feature is important but it usually will not show how that particular important feature can affect the prediction outcome.")
+            st.write("To interpret Feature Importance; the larger the 'bar' for a feature then the more influence it had upon the Model's prediction. Features with '0' importance are ignored and considered 'noise'.")
+            st.write("It is also important to note that the Feature Importance Relative-Ranking does not indicate a 'direction' it only gives a 'magnitude'.")
+            
+        with sub2:
+            st.header("Residual Analysis")
+            st.divider()
+            st.write("This method of observation is the practice of examining the errors (aka 'Residuals') between predicted values and actual values in order to interpret the Model's performance, identify any biases present, as well as validate assumptions.")
+            st.write("Residual Analysis can help reveal where a Model is failing, helping to ensure it makes correct decisions for the right reasons.")
+            st.write("The use of residuals can help prove that the Model's errors are truly random.")
+            st.write("Units with Residual Analysis are expressed in the same units as the 'target' variable.")
+            st.write("To interpret Residual Analysis; you observe the 'shape of the distribution' on a scatter plot graph.")
+            st.write("If the scattered points appear random then the model can be considered unbiased. If there is a 'funneling' appearance then the model is becoming inaccurate with higher values. If the appearance is a 'U' or 'S' then it is representative of over and under predicting; this may indicate to use more features or a more complex model.")
+        
+        with sub3:
+            st.header("SHAP Analysis")
+            st.divider()
+            st.write("The SHAP (SHapley Additive Explanations) Analysis method is often considered to be one of the crucial methods of Explainable AI.")
+            st.write("This method is a 'Game-Theoretic' approach to Explainable AI which explains individual predictions made by the Model by quantifying the contribution of each feature to that particular prediction. This method is able to work on any Machine Learning Model.")
             st.write("")
+            
         
 
     
