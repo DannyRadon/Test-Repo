@@ -663,8 +663,39 @@ if view_type == "prediction":
 
 
 elif view_type == "insights":
-    plot_xai_view(outputs)
-    st.dataframe(outputs["feature_importance"], use_container_width=True)
+    st.title("Explainable AI")
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(['Information', 'Metrics', 'Feature Importance', 'Residual Analysis', 'SHAP Analysis', 'Visualizations'])
+    
+    with tab1:
+        st.header("Explainable AI Information") 
+        st.divider()
+        
+        st.subheader("What is Explainable AI?")
+        st.write("Explainable AI (XAI) is a set of processes and methods which help human users to observe, comprehend and trust the results created by a Machine Learning Algorithm.")
+        st.write("")
+        
+        st.subheader("How is a Model Explainable?")
+        st.write("One part to a Model's Explainability involves Performance Metrics such as:")
+        
+        sub1, sub2, sub3, sub4 = st.tabs(['RMSE', 'MAE', 'R²', 'Accuracy'])
+        
+        with sub1:
+            st.header("RMSE - Root Mean Square Error")
+            st.divider()
+            st.write("The Root Mean Square Error (RMSE) is a standard metric used in Machine Learning to measure the accuracy of a model, particularly a 'Regression Model'.") 
+            st.write("The computed value represents the average difference between what was predicted and what was actual.")
+            st.write("In the context of Explainable AI, the RMSE serves as a crucial quantitative metric to confirm that a 'transparent' Model is performing accurately.")
+            st.write("To interpret a calculated RMSE value; a value that is closer to '0' indicates a better fit. A value of '0' indicates a perfect fit.")
+            st.write("Units with RMSE is expressed in the same units as the target variable")
+            st.subheader("Usage Warning:")
+            st.write("RMSE squares the errors before averaging them, allowing higher influence to be given to large errors.")
+            st.write("This makes it more sensitive to outliers compared to other Performance Metrics like Mean Absolute Error (MAE).")
+        with sub2:
+            st.header("MAE - Mean Absolute Error")
+    
+    with tab2:
+        plot_xai_view(outputs)
+        st.dataframe(outputs["feature_importance"], use_container_width=True)
 
 elif view_type == "forecast":
     plot_forecast_view(outputs, selected_target)
