@@ -677,7 +677,7 @@ elif view_type == "insights":
         st.subheader("How is a Model Explainable?")
         st.write("One part to a Model's Explainability involves Performance Metrics such as:")
         
-        sub1, sub2, sub3, sub4 = st.tabs(['RMSE', 'MAE', 'R²', 'Accuracy'])
+        sub1, sub2, sub3 = st.tabs(['RMSE', 'MAE', 'R²'])
         
         with sub1:
             st.header("RMSE - Root Mean Square Error")
