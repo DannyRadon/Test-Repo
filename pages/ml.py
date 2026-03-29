@@ -664,7 +664,7 @@ if view_type == "prediction":
 
 elif view_type == "insights":
     st.title("Explainable AI")
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(['Information', 'Metrics', 'Feature Importance', 'Residual Analysis', 'SHAP Analysis', 'Visualizations'])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(['Information', 'Performance Metrics', 'Feature Importance', 'Residual Analysis', 'SHAP Analysis', 'Visualizations'])
     
     with tab1:
         st.header("Explainable AI Information") 
@@ -741,10 +741,13 @@ elif view_type == "insights":
             st.header("SHAP Analysis")
             st.divider()
             st.write("The SHAP (SHapley Additive Explanations) Analysis method is often considered to be one of the crucial methods of Explainable AI.")
-            st.write("This method is a 'Game-Theoretic' approach to Explainable AI which explains individual predictions made by the Model by quantifying the contribution of each feature to that particular prediction. This method is able to work on any Machine Learning Model.")
-            st.write("")
+            st.write("This method is a 'Game-Theoretic' approach which explains individual predictions made by the Model by quantifying the contribution of each feature to that particular prediction. This method is able to work on any Machine Learning Model.")
+            st.write("Units with SHapley Analysis vary and depend on the kind of model you are using. Units can be log-odds for Classification Models or 'Original Units' for Regression Models.")
+            st.write("To interpret SHapley Analysis; a SHAP Summary Plot is generated for viewing.")
+            st.write("The center line represents the **Model's Average Starting Point** or 'baseline'. Points to the right of center influenced the prediction further. Points to the left of center dragged the prediction lower.")
+            st.write("Additionally, red points indicate that the feature value was 'high' while blue dots indicate that the feature value was 'low'.")
             
-        
+         
 
     
     with tab2:
