@@ -690,8 +690,16 @@ elif view_type == "insights":
             st.subheader("Usage Warning:")
             st.write("RMSE squares the errors before averaging them, allowing higher influence to be given to large errors.")
             st.write("This makes it more sensitive to outliers compared to other Performance Metrics like Mean Absolute Error (MAE).")
+            
         with sub2:
-            st.header("MAE - Mean Absolute Error")
+            st.header("MAE: Mean Absolute Error")
+            st.divider()
+            st.write("The Mean Absolute Error (MAE) is an evaluation metric in Machine Learning used to measure the accuracy of 'Regression Models'.")
+            st.write("It calculates the average magnitude of errors in a set of predictions.")
+            st.write("In the context of Explainable AI, the MAE serves as an easy-to-understand metric for quantifying the Model's error. Helping to build trust in the output by providing a clear picture of how far the predictions strayed from the actual.")
+            st.write("MAE allows developers to track the accuracy across time or data splits to identify performance degradation.")
+            st.write("Units with MAE are expressed in the same units as the target variable")
+            st.write("To intrepret a calculated MAE value; the output represents the distance away from the actual. Values closer to '0' represent a better fit. When the value equals '0' it represents a perfect fit.")
     
     with tab2:
         plot_xai_view(outputs)
