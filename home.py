@@ -253,4 +253,7 @@ with col4:
     if st.button(" ", key="ml_info_btn"):
         st.switch_page("pages/ml.py")
 
-
+st.divider()
+st.header("Recent Dev Updates:")
+st.write("3/28/26 - Icon Image Format Converted to .GIF -- Reduced Collective File Size: 1.32MB --> 400Kb")
+st.divider()
