@@ -700,6 +700,31 @@ elif view_type == "insights":
             st.write("MAE allows developers to track the accuracy across time or data splits to identify performance degradation.")
             st.write("Units with MAE are expressed in the same units as the target variable")
             st.write("To intrepret a calculated MAE value; the output represents the distance away from the actual. Values closer to '0' represent a better fit. When the value equals '0' it represents a perfect fit.")
+
+        with sub3:
+            st.header("R²: R-Squared")
+            st.divider()
+            st.write("The R-Squared (R²) is a statistical measure in Machine Learning which indicates how well a model fits the data given.")
+            st.write("In theory, it represents the proportion of variance in the 'target' variable that is predictable from the feature variables.")
+            st.write("In the context of Explainable AI, it is a way of observing if the model actually understands the data that it is being given. In other words, it serves as a factor of reliability.")
+            st.write("Units with R² are expressed in percentage (%)")
+            st.write("A high R² (e.g. - 80%) will indicate that the Model has captured the base logic of the data. Its feature explanations are considered trustworthy.")
+            st.write("A low R² (e.g. - 20%) will indicate that the Model did not capture the base logic and is 'mostly guessing' the output predictions.")
+        
+        st.divider()
+        st.write("Additional methods are also used in tandem with Performance Metrics for a Model's Explainability.")
+        st.write("These additional methods are considered to be 'Diagnostic & Interpretibility Tools' that aid in answering the question of 'How does it work?'")
+        st.write("These **Diagnostic & Interpretibility** methods include:")
+        
+        sub1, sub2, sub3 = st.tabs(['Feature Importance', 'Residual Analysis', 'SHAP Analysis'])
+        
+        with sub1:
+            st.header("Feature Importance")
+            st.divider()
+            st.write("The method of observing a Model's 'Feature Importance' is essentially a technique that will rank the input variables (features) given to the Model based on those features' influence on a Model's prediction.")
+            st.write("")
+        
+
     
     with tab2:
         plot_xai_view(outputs)
