@@ -387,3 +387,359 @@ def aeso_daily_agg(df, datetime_col="DateTime"):
     df_daily.reset_index(inplace=True)
 
     return df_daily
+
+
+def RunModel3(aeso_fe, page_tab):
+    
+    from xgboost import XGBRegressor
+    from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+    
+    # monthly df
+    monthly_gen = (
+        aeso_fe.groupby(['year', 'month'], as_index=False)
+        .agg({
+            'total_generation__solar': 'sum',
+            'maximum_capacity__solar': 'mean',
+            'system_available__solar': 'mean',
+            'pool_price': 'mean',
+            'total_gen_all': 'sum',
+            'emissions_avoided': 'sum'  ############# new -- forgot to add emissions data ealier
+        })
+    )
+    
+    monthly_gen['time'] = pd.to_datetime(
+        monthly_gen[['year', 'month']].assign(day=1)
+    )
+    monthly_gen = monthly_gen.sort_values('time').reset_index(drop=True)
+    
+    monthly_gen['solar_generation_per_capacity'] = (
+        monthly_gen['total_generation__solar'] / monthly_gen['maximum_capacity__solar']
+    )
+    
+    monthly_gen['solar_market_share'] = (
+        monthly_gen['total_generation__solar'] / monthly_gen['total_gen_all']
+    )
+    
+    monthly_gen = (
+        monthly_gen.replace([np.inf, -np.inf], np.nan)
+        .dropna()
+        .reset_index(drop=True)
+    )
+    
+    target = 'solar_generation_per_capacity'
+    
+    # build features
+    df = monthly_gen.copy()
+    
+    # linear trend
+    df['time_index'] = np.arange(len(df))
+    
+    # month number
+    df['month_num'] = df['time'].dt.month
+    
+    # Fourier order 4
+    for k in range(1, 5):
+        df[f'sin_year_{k}'] = np.sin(2 * np.pi * k * df['month_num'] / 12)
+        df[f'cos_year_{k}'] = np.cos(2 * np.pi * k * df['month_num'] / 12)
+    
+    # availability ratio
+    df['availability_ratio'] = (
+        df['system_available__solar'] / df['maximum_capacity__solar']
+    )
+    
+    # lag set A
+    df['gen_per_cap_lag_1'] = df[target].shift(1)
+    df['gen_per_cap_lag_12'] = df[target].shift(12)
+    
+    # pool price rolling
+    df['pool_price_roll_3'] = df['pool_price'].shift(1).rolling(3).mean()
+    df['pool_price_roll_6'] = df['pool_price'].shift(1).rolling(6).mean()
+    
+    features = [
+        'time_index',
+    
+        'sin_year_1', 'cos_year_1',
+        'sin_year_2', 'cos_year_2',
+        'sin_year_3', 'cos_year_3',
+        'sin_year_4', 'cos_year_4',
+    
+        'system_available__solar',
+        'availability_ratio',
+    
+        'pool_price',
+        'pool_price_roll_3',
+        'pool_price_roll_6',
+    
+        'gen_per_cap_lag_1',
+        'gen_per_cap_lag_12'
+    ]
+    
+    df_model = df.dropna().reset_index(drop=True)
+    
+    print("Modeling dataframe shape:", df_model.shape)
+    print("Date range:", df_model['time'].min(), "to", df_model['time'].max())
+    
+    # train/test split
+    test_size = int(np.ceil(len(df_model) * 0.20))
+    train_df = df_model.iloc[:-test_size].copy()
+    test_df  = df_model.iloc[-test_size:].copy()
+    
+    X_train = train_df[features]
+    y_train = train_df[target]
+    
+    X_test = test_df[features]
+    y_test = test_df[target]
+    
+    print("\nTrain size:", len(train_df))
+    print("Test size :", len(test_df))
+    print("Train range:", train_df['time'].min(), "to", train_df['time'].max())
+    print("Test range :", test_df['time'].min(), "to", test_df['time'].max())
+    
+    # train model XGBoost
+    model = XGBRegressor(
+        max_depth=2,
+        learning_rate=0.05,
+        n_estimators=300,
+        subsample=0.8,
+        colsample_bytree=1.0,
+        objective='reg:squarederror',
+        random_state=42
+    )
+    
+    model.fit(X_train, y_train)
+    
+    # predict
+    test_pred = model.predict(X_test)
+    
+    results = test_df[['time']].copy()
+    results['actual'] = y_test.values
+    results['pred'] = test_pred
+    results['error'] = results['actual'] - results['pred']
+    results['abs_error'] = np.abs(results['error'])
+    
+    # evaluate main target
+    rmse = np.sqrt(mean_squared_error(y_test, test_pred))
+    mae = mean_absolute_error(y_test, test_pred)
+    r2 = r2_score(y_test, test_pred)
+    mape = np.mean(np.abs((y_test - test_pred) / y_test)) * 100
+    
+    print("\nFINAL TEST METRICS")
+    print(f"RMSE: {rmse:.4f}")
+    print(f"MAE : {mae:.4f}")
+    print(f"R²  : {r2:.4f}")
+    print(f"MAPE: {mape:.2f}%")
+    
+    # convert predictions into solar gen and market share
+    results['maximum_capacity__solar'] = test_df['maximum_capacity__solar'].values
+    results['total_gen_all'] = test_df['total_gen_all'].values
+    
+    # total gen solar = solar gen per capacity times max capacity
+    results['actual_total_generation__solar'] = (
+        results['actual'] * results['maximum_capacity__solar']
+    )
+    results['pred_total_generation__solar'] = (
+        results['pred'] * results['maximum_capacity__solar']
+    )
+    # market share = total gen solar/total gen all
+    results['actual_solar_market_share'] = (
+        results['actual_total_generation__solar'] / results['total_gen_all']
+    )
+    results['pred_solar_market_share'] = (
+        results['pred_total_generation__solar'] / results['total_gen_all']
+    )
+    
+    # ---------------------------------------------------------
+    # ADD EMISSIONS AVOIDED
+    # derived from total solar generation
+    # ---------------------------------------------------------
+    EMISSIONS_FACTOR = 0.52
+    
+    results['actual_emissions_avoided'] = (
+        results['actual_total_generation__solar'] * EMISSIONS_FACTOR
+    )
+    results['pred_emissions_avoided'] = (
+        results['pred_total_generation__solar'] * EMISSIONS_FACTOR
+    )
+    
+    # optional: compare against your original aggregated emissions_avoided column
+    results['actual_emissions_avoided_from_source'] = test_df['emissions_avoided'].values
+    
+    # evaluation for converted outputs
+    rmse_gen = np.sqrt(mean_squared_error(
+        results['actual_total_generation__solar'],
+        results['pred_total_generation__solar']
+    ))
+    mae_gen = mean_absolute_error(
+        results['actual_total_generation__solar'],
+        results['pred_total_generation__solar']
+    )
+    r2_gen = r2_score(
+        results['actual_total_generation__solar'],
+        results['pred_total_generation__solar']
+    )
+    
+    rmse_share = np.sqrt(mean_squared_error(
+        results['actual_solar_market_share'],
+        results['pred_solar_market_share']
+    ))
+    mae_share = mean_absolute_error(
+        results['actual_solar_market_share'],
+        results['pred_solar_market_share']
+    )
+    r2_share = r2_score(
+        results['actual_solar_market_share'],
+        results['pred_solar_market_share']
+    )
+    
+    rmse_emissions = np.sqrt(mean_squared_error(
+        results['actual_emissions_avoided'],
+        results['pred_emissions_avoided']
+    ))
+    mae_emissions = mean_absolute_error(
+        results['actual_emissions_avoided'],
+        results['pred_emissions_avoided']
+    )
+    r2_emissions = r2_score(
+        results['actual_emissions_avoided'],
+        results['pred_emissions_avoided']
+    )
+    
+    if page_tab == 2:
+        col1, col2 = st.columns(2)
+    
+        with col1:
+    
+            st.subheader("**Model Name:** ")
+            st.write(type(model).__name__)
+    
+        with col2:
+            st.subheader("**Model Parameters:** ")
+            st.write("**Learning Rate:** ", model.get_params()['learning_rate'])
+            st.write("**Max. Depth:** ", model.get_params()['max_depth'])
+            st.write("**n_estimators:** ", model.get_params()['n_estimators'])
+            st.write("**Sub-Sample:** ", model.get_params()['subsample'])
+    
+        st.divider()
+    
+        col1, col2, col3 = st.columns(3)
+    
+        with col1:
+            st.metric("RMSE:", int(rmse)) 
+    
+        with col2:
+            st.metric("MAE:" , int(mae))
+    
+        with col3:
+            st.metric("R²:", r2 * 100)
+    
+        st.divider()
+    
+    elif page_tab == 3:
+        
+        # feature importance
+        feature_importance = pd.DataFrame({
+            'feature': features,
+            'importance': model.feature_importances_
+        }).sort_values('importance', ascending=False)
+        
+        top_val = feature_importance['importance'].iloc[0]
+        total_val = feature_importance['importance'].sum()
+        dominance_pct = (top_val / total_val) * 100
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.write("**Total Features:** ", model.n_features_in_)
+            st.write("**Top Feature Influence:** ", f"{int(dominance_pct)}%")
+        
+        with col2:
+            st.write("Total of 'Zero-Impact' Features: ", (feature_importance['importance'] == 0).sum())
+            st.write("Top Feature: ", f'"{feature_importance['feature'].iloc[0]}"')
+            
+        plt.figure(figsize=(10, 6))
+        plt.barh(feature_importance['feature'], feature_importance['importance'])
+        plt.gca().invert_yaxis()
+        plt.title('Feature Importance')
+        plt.xlabel('Importance')
+        st.pyplot(plt.gcf())   
+        
+        st.divider()
+        st.write("This Section is Experimental...")
+        selected_to_drop = st.multiselect("Select features to 'lose':", feature_importance['feature'])
+        lost_importance = feature_importance[feature_importance['feature'].isin(selected_to_drop)]['importance'].sum()
+        
+        st.warning(f"Removing these would lose **{lost_importance*100:.1f}%** of the model's predictive power.")  
+        
+        st.subheader("")
+        
+        # Create the cumulative column
+        feature_importance['c_sum'] = feature_importance['importance'].cumsum()
+        
+        fig = px.area(feature_importance, x=range(len(feature_importance)), y='c_sum', 
+                      title="Cumulative Logic Coverage",
+                      labels={'x': 'Number of Features', 'y': 'Total Importance'})
+        st.plotly_chart(fig)        
+    
+    elif page_tab == 4:
+        
+        # Residual Analysis Plot
+        plt.figure(figsize=(12, 6))
+        plt.plot(results['time'], results['error'], marker='o', linestyle='-')
+        plt.axhline(0, color='red', linestyle='--', label='Zero Error')
+        plt.title('Residuals: Actual - Predicted Solar Generation per Capacity')
+        plt.xlabel('Time')
+        plt.ylabel('Residual (Actual - Predicted)')
+        plt.legend()
+        plt.grid(True)
+        st.pyplot(plt.gcf())
+        
+        # Distribution of Residuals
+        plt.figure(figsize=(10, 6))
+        
+        # Note: sns.histplot returns an Axes object, not a Figure object
+        sns.histplot(results['error'], kde=True, bins=30)
+        
+        plt.title('Distribution of Residuals')
+        plt.xlabel('Residual (Actual - Predicted)')
+        plt.ylabel('Frequency')
+        plt.grid(True)
+        
+        # Use this to send the current figure to the Streamlit app
+        st.pyplot(plt.gcf())
+    
+    
+    elif page_tab == 5:
+        
+        import shap
+        
+        # Using X_train as the background dataset for the explainer
+        explainer = shap.TreeExplainer(model, X_train)
+        
+        # Define the months and year for analysis
+        target_months = {3: 'March', 7: 'July', 8: 'August'}
+        target_year = 2025
+        
+        for month_num, month_name in target_months.items():
+            # Filter the test data for the specific month and year
+            month_data = test_df[(test_df['time'].dt.month == month_num) & (test_df['time'].dt.year == target_year)]
+        
+            if not month_data.empty:
+                # Assuming we want to explain the first instance found for that month
+                # If there are multiple instances, you might want to pick a specific one
+                data_to_explain = month_data.iloc[0]
+                X_data_to_explain = data_to_explain[features].to_frame().T
+        
+                # Calculate SHAP values for the selected data point
+                shap_values = explainer(X_data_to_explain)
+                shap.plots.waterfall(shap_values[0], show=False)
+        
+                st.write(f"\n--- SHAP Analysis for {month_name} {target_year} ---")
+                
+                # Plotting the SHAP waterfall plot for a single prediction
+                
+                st.pyplot(plt.gcf())
+                plt.clf()
+                
+            else:
+                print(f"\nNo data found for {month_name} {target_year} in the test set.")
+        
