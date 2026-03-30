@@ -255,6 +255,6 @@ with col4:
 
 st.divider()
 st.header("Recent Dev Updates:")
-st.write("3/28/26 - Icon Image Format Converted to .GIF -- Reduced Collective File Size: 1.32MB --> 400Kb")
-st.write("3/29/26 - Restructured M-Learning Page -- Added Main Page Tabs & Sub-Page Tabs for XAI (In-Dev)")
+st.write("3/29/26 - Restructured M-Learning Page -- XAI Section Completed")
+st.write("TO DO: Fix ML Page Load Times / Restructure Page Logic")
 st.divider()
