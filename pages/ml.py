@@ -747,12 +747,20 @@ elif view_type == "insights":
             st.write("The center line represents the **Model's Average Starting Point** or 'baseline'. Points to the right of center influenced the prediction further. Points to the left of center dragged the prediction lower.")
             st.write("Additionally, red points indicate that the feature value was 'high' while blue dots indicate that the feature value was 'low'.")
             
-         
-
-    
     with tab2:
-        plot_xai_view(outputs)
-        st.dataframe(outputs["feature_importance"], use_container_width=True)
+        st.header("Model Performance Metrics")
+        st.divider()
+        
+        RunModel3(aeso_clean, 2)
+    
+    with tab3:
+        RunModel3(aeso_clean, 3)
+    
+    with tab4:
+        RunModel3(aeso_clean, 4)
+    
+    with tab5:
+        RunModel3(aeso_clean, 5)
 
 elif view_type == "forecast":
     plot_forecast_view(outputs, selected_target)
