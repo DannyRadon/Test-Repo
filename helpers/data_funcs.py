@@ -9,6 +9,8 @@ import base64
 import matplotlib.pyplot as plt
 import plotly.express as px
 
+from xgboost import XGBRegressor
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 # Helper Function - Converting Icon Images to Base64 Encoding for Dash-Display
 @st.cache_data
@@ -391,9 +393,6 @@ def aeso_daily_agg(df, datetime_col="DateTime"):
 
 
 def RunModel3(aeso_fe, page_tab):
-    
-    from xgboost import XGBRegressor
-    from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
     
     # monthly df
     monthly_gen = (
