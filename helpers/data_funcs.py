@@ -393,7 +393,10 @@ def aeso_daily_agg(df, datetime_col="DateTime"):
     return df_daily
 
 
-def RunModel3(aeso_fe, page_tab):
+# Data Processing Pipeline Function for Model 3
+
+@st.cache_data
+def ProcessDataM3(aeso_fe):
     
     # monthly df
     monthly_gen = (
@@ -475,10 +478,16 @@ def RunModel3(aeso_fe, page_tab):
         'gen_per_cap_lag_12'
     ]
     
-    df_model = df.dropna().reset_index(drop=True)
+    df_model = df.dropna().reset_index(drop=True)    
     
-    print("Modeling dataframe shape:", df_model.shape)
-    print("Date range:", df_model['time'].min(), "to", df_model['time'].max())
+    return df_model, features, target
+
+
+
+# Training Function for Model-3
+
+@st.cache_resource
+def TrainModel3(df_model, features, target):
     
     # train/test split
     test_size = int(np.ceil(len(df_model) * 0.20))
@@ -516,7 +525,15 @@ def RunModel3(aeso_fe, page_tab):
     results['actual'] = y_test.values
     results['pred'] = test_pred
     results['error'] = results['actual'] - results['pred']
-    results['abs_error'] = np.abs(results['error'])
+    results['abs_error'] = np.abs(results['error'])    
+    
+    
+    return y_test, test_pred, results, test_df, model, X_train
+
+
+
+# Evaluation Function for Model 3
+def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train, page_tab):
     
     # evaluate main target
     rmse = np.sqrt(mean_squared_error(y_test, test_pred))
@@ -743,4 +760,4 @@ def RunModel3(aeso_fe, page_tab):
                 
             else:
                 print(f"\nNo data found for {month_name} {target_year} in the test set.")
-        
+         
