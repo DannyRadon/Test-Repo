@@ -33,9 +33,14 @@ def load_clean_data():
     aeso = load_data_aeso()
     return clean_fe1(aeso)
 
+
+# Loading in the Cleaned Set
 aeso_clean = load_clean_data()
 
+# Processing Cleaned Dataset for Model 3
+df_model, features, target = ProcessDataM3(aeso_clean)
 
+y_test_model, test_pred, results, test_df, model, X_train = TrainModel3(df_model, features, target)
 # ------------------------------- THIS SECTION IS TO SETUP & OPERATE THE GUI MENU LOGIC ----------------------------------- |
 
 
@@ -748,16 +753,16 @@ elif view_type == "insights":
         st.header("Model Performance Metrics")
         st.divider()
         
-        RunModel3(aeso_clean, 2)
+        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, 2)
     
     with tab3:
-        RunModel3(aeso_clean, 3)
+        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, 3)
     
     with tab4:
-        RunModel3(aeso_clean, 4)
+        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, 4)
     
     with tab5:
-        RunModel3(aeso_clean, 5)
+        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, 5)
 
 elif view_type == "forecast":
     plot_forecast_view(outputs, selected_target)
