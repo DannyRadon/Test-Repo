@@ -8,3 +8,4 @@ seaborn
 st-click_detector
 streamlit==1.54.0
 xgboost
+shap
