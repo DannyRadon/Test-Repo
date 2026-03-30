@@ -750,17 +750,6 @@ elif view_type == "insights":
     with tab2:
         st.header("Model Performance Metrics")
         st.divider()
-        
-        RunModel3(aeso_clean, 2)
-    
-    with tab3:
-        RunModel3(aeso_clean, 3)
-    
-    with tab4:
-        RunModel3(aeso_clean, 4)
-    
-    with tab5:
-        RunModel3(aeso_clean, 5)
 
 elif view_type == "forecast":
     plot_forecast_view(outputs, selected_target)
