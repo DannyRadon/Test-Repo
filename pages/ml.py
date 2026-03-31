@@ -650,9 +650,9 @@ aeso_clean = load_clean_data()
 monthly = fe(aeso_clean)
 
 # Processing Cleaned Dataset for Model 3
-df_model, features, target = ProcessDataM3(aeso_clean)
+df_model, features, selected_target = ProcessDataM3(aeso_clean, selected_target)
 
-y_test_model, test_pred, results, test_df, model, X_train, train_df, metrics = TrainModel3(df_model, features, target, monthly)
+y_test_model, test_pred, results, test_df, model, X_train, train_df, metrics = TrainModel3(df_model, features, selected_target, monthly)
 
 
 
@@ -661,12 +661,13 @@ y_test_model, test_pred, results, test_df, model, X_train, train_df, metrics = T
 
 
 if view_type == "prediction":
-    plot_prediction_view(train_df, test_df, results, target)
+    plot_prediction_view(train_df, test_df, results, selected_target)
     metrics = metrics[selected_target]
 
 
 elif view_type == "insights":
     st.title("Explainable AI")
+    st.write("---PLEASE ALLOW TIME FOR LOAD -- WILL BE FIXED EVENTUALLY---")
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(['Information', 'Perf. Metrics', 'Feature Importance', 'Residual Analysis', 'SHAP Analysis', 'Visualizations'])
     
     with tab1:
@@ -769,7 +770,9 @@ elif view_type == "insights":
         
 
 elif view_type == "forecast":
-    st.subheader("Under Development -- Will Be Removed")
+    forecast_df = forecast_60_months(monthly, model)
+    plot_forecast_view(outputs, selected_target)
+    st.dataframe(forecast_df, use_container_width=True)
     
     
 # Update the Taskbar Clock
