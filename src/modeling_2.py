@@ -26,19 +26,8 @@ def plot_prediction_view(train_df, test_df, results, target):
 
     fig, ax = plt.subplots(figsize=(12, 5))
 
-    if target == "solar_generation_per_capacity":
-        ax.plot(train_df["time"], train_df["solar_generation_per_capacity"], label="Train")
-        ax.plot(test_df["time"], test_df["solar_generation_per_capacity"], label="Test Actual")
-        ax.plot(results["time"], results["pred"], label="Test Predicted")
-    elif target == "total_generation__solar":
-        ax.plot(results["time"], results["actual_total_generation__solar"], label="Actual")
-        ax.plot(results["time"], results["pred_total_generation__solar"], label="Predicted")
-    elif target == "solar_market_share":
-        ax.plot(results["time"], results["actual_solar_market_share"], label="Actual")
-        ax.plot(results["time"], results["pred_solar_market_share"], label="Predicted")
-    elif target == "emissions_avoided":
-        ax.plot(results["time"], results["actual_emissions_avoided"], label="Actual")
-        ax.plot(results["time"], results["pred_emissions_avoided"], label="Predicted")
+    ax.plot(results["time"], results["actual"], label=f"Actual {target}", color="blue")
+    ax.plot(results["time"], results["pred"], label=f"Predicted {target}", color="orange", linestyle="--")    
 
     ax.legend()
     ax.grid(True, alpha=0.3)
@@ -49,6 +38,8 @@ def plot_prediction_view(train_df, test_df, results, target):
         bottom=0.05
     )       
     st.plotly_chart(fig, use_container_width=True)
+    
+    
 
 def plot_xai_view(features):
     fi = features["feature_importance"]
