@@ -770,9 +770,7 @@ elif view_type == "insights":
         
 
 elif view_type == "forecast":
-    forecast_df = forecast_60_months(monthly, model)
-    plot_forecast_view(outputs, selected_target)
-    st.dataframe(forecast_df, use_container_width=True)
+    st.write("Under Developent -- Will Be Removed")
     
     
 # Update the Taskbar Clock
