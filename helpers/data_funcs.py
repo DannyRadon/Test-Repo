@@ -30,6 +30,17 @@ def get_base64_image(image_path):
 
 
 
+
+# Helper to avoid repetitive code
+@st.cache_data
+def get_scoped_metrics(actual, pred):
+    return {
+        "RMSE": np.sqrt(mean_squared_error(actual, pred)),
+        "MAE": mean_absolute_error(actual, pred),
+        "R2": r2_score(actual, pred),
+        "MAPE": np.mean(np.abs((actual - pred) / actual)) * 100
+    } 
+
 # Monthly Daily Output Function for EDA Page
 
 @st.cache_data
@@ -421,7 +432,10 @@ def calculator(width=350, height=450):
 
 
 
-# Re-Structured Pipeline Down Below -------------------------------------------------------
+
+
+
+
 # Data Cleaning Function for AESO
 def clean_fe1(aeso):
     # CLEANINg
@@ -618,6 +632,8 @@ def ProcessDataM3(aeso_fe, selected_target):
 @st.cache_data
 def TrainModel3(df_model, features, selected_target, monthly):
     
+    EMISSIONS_FACTOR = 0.52
+    
     # train/test split
     test_size = int(np.ceil(len(df_model) * 0.20))
     train_df = df_model.iloc[:-test_size].copy()
@@ -650,77 +666,43 @@ def TrainModel3(df_model, features, selected_target, monthly):
     results['actual'] = y_test.values
     results['pred'] = test_pred
     results['error'] = results['actual'] - results['pred']
-    results['abs_error'] = np.abs(results['error'])
+    results['abs_error'] = np.abs(results['error'])    
     
-    rmse = np.sqrt(mean_squared_error(y_test, test_pred))
-    mae = mean_absolute_error(y_test, test_pred)
-    r2 = r2_score(y_test, test_pred)
-    mape = np.mean(np.abs((y_test - test_pred) / y_test)) * 100    
+    # columns needed for conversions
+    results['maximum_capacity__solar'] = test_df['maximum_capacity__solar'].values
+    results['total_gen_all'] = test_df['total_gen_all'].values
+
+    # Scale Conversions 
+    # Total Generation
+    results['actual_total_generation__solar'] = results['actual']
+    results['pred_total_generation__solar'] = results['pred']
     
-    main_metrics = {
-        "RMSE": rmse,
-        "MAE": mae,
-        "R2": r2,
-        "MAPE": mape
-    }
+    # Market Share
+    results['actual_solar_market_share'] = results['actual_total_generation__solar'] / results['total_gen_all']
+    results['pred_solar_market_share'] = results['pred_total_generation__solar'] / results['total_gen_all']
+    
+    # Emissions Avoided
+    results['actual_emissions_avoided'] = results['actual_total_generation__solar'] * EMISSIONS_FACTOR
+    results['pred_emissions_avoided'] = results['pred_total_generation__solar'] * EMISSIONS_FACTOR
     
     metrics = {
-        "solar_generation_per_capacity": main_metrics,
-        "total_generation__solar": main_metrics,
-        "solar_market_share": main_metrics,
-        "emissions_avoided": main_metrics
-    }    
-    
+         "solar_generation_per_capacity": get_scoped_metrics(results['actual'], results['pred']),
+         "total_generation__solar": get_scoped_metrics(results['actual_total_generation__solar'], results['pred_total_generation__solar']),
+         "solar_market_share": get_scoped_metrics(results['actual_solar_market_share'], results['pred_solar_market_share']),
+         "emissions_avoided": get_scoped_metrics(results['actual_emissions_avoided'], results['pred_emissions_avoided'])
+     }        
     return y_test, test_pred, results, test_df, model, X_train, train_df, metrics
 
 
 
 # Evaluation Function for Model 3
-def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train, page_tab):
+def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train, selected_target, page_tab):
     
     # evaluate main selected_target
-    rmse = np.sqrt(mean_squared_error(y_test, test_pred))
+    rmse = np.sqrt(mean_squared_error(y_test, test_pred)) 
     mae = mean_absolute_error(y_test, test_pred)
-    r2 = r2_score(y_test, test_pred)
+    r2 = r2_score(y_test, test_pred) 
     mape = np.mean(np.abs((y_test - test_pred) / y_test)) * 100
-    
-    print("\nFINAL TEST METRICS")
-    print(f"RMSE: {rmse:.4f}")
-    print(f"MAE : {mae:.4f}")
-    print(f"R²  : {r2:.4f}")
-    print(f"MAPE: {mape:.2f}%")
-    
-    # convert predictions into solar gen and market share
-    results['maximum_capacity__solar'] = test_df['maximum_capacity__solar'].values
-    results['total_gen_all'] = test_df['total_gen_all'].values
-    
-    # total gen solar = solar gen per capacity times max capacity
-    results['actual_total_generation__solar'] = (
-        results['actual'] * results['maximum_capacity__solar']
-    )
-    results['pred_total_generation__solar'] = (
-        results['pred'] * results['maximum_capacity__solar']
-    )
-    # market share = total gen solar/total gen all
-    results['actual_solar_market_share'] = (
-        results['actual_total_generation__solar'] / results['total_gen_all']
-    )
-    results['pred_solar_market_share'] = (
-        results['pred_total_generation__solar'] / results['total_gen_all']
-    )
-    
-    # ---------------------------------------------------------
-    # ADD EMISSIONS AVOIDED
-    # derived from total solar generation
-    # ---------------------------------------------------------
-    EMISSIONS_FACTOR = 0.52
-    
-    results['actual_emissions_avoided'] = (
-        results['actual_total_generation__solar'] * EMISSIONS_FACTOR
-    )
-    results['pred_emissions_avoided'] = (
-        results['pred_total_generation__solar'] * EMISSIONS_FACTOR
-    )
     
     # optional: compare against your original aggregated emissions_avoided column
     results['actual_emissions_avoided_from_source'] = test_df['emissions_avoided'].values
@@ -771,7 +753,9 @@ def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train
         with col1:
     
             st.subheader("**Model Name:** ")
-            st.write(type(model).__name__)
+            st.write(f"**{type(model).__name__}**")
+            st.subheader("**Target Variable:**")
+            st.write(f"**{selected_target}**")
     
         with col2:
             st.subheader("**Model Parameters:** ")
@@ -785,17 +769,23 @@ def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train
         col1, col2, col3 = st.columns(3)
     
         with col1:
-            st.metric("RMSE:", int(rmse)) 
+            st.header("RMSE:")
+            st.subheader(str(int(rmse)) + " MW")
     
         with col2:
-            st.metric("MAE:" , int(mae))
+            st.header("MAE:")
+            st.subheader(str(int(mae)) + " MW")
     
         with col3:
-            st.metric("R²:", r2 * 100)
+            st.header("R²:")
+            st.subheader( str(int(r2 * 100)) + " %")
     
         st.divider()
     
     elif page_tab == 3:
+        
+        st.header(f"Feat. Importance for - {selected_target}")
+        st.divider()
         
         # feature importance
         feature_importance = pd.DataFrame({
@@ -847,7 +837,7 @@ def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train
         plt.figure(figsize=(12, 6))
         plt.plot(results['time'], results['error'], marker='o', linestyle='-')
         plt.axhline(0, color='red', linestyle='--', label='Zero Error')
-        plt.title('Residuals: Actual - Predicted Solar Generation per Capacity')
+        plt.title(f'Residuals: Actual - {selected_target}')
         plt.xlabel('Time')
         plt.ylabel('Residual (Actual - Predicted)')
         plt.legend()
