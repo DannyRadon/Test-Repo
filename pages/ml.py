@@ -17,6 +17,7 @@ from helpers.data_funcs import *
 # Imported ML pieces
 from src.aeso_cleaning_fe1 import *
 from src.modeling_2 import *
+from src.modeling import *
 
 
 st.title("Machine Learning & Forecasting")
