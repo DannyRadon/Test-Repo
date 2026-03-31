@@ -17,7 +17,6 @@ from helpers.data_funcs import *
 # Imported ML pieces
 from src.aeso_cleaning_fe1 import *
 from src.modeling_2 import *
-from src.modeling import *
 
 
 st.title("Machine Learning & Forecasting")
@@ -667,8 +666,7 @@ if view_type == "prediction":
 
 elif view_type == "insights":
     st.title("Explainable AI")
-    st.write("---PLEASE ALLOW TIME FOR LOAD -- WILL BE FIXED EVENTUALLY---")
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(['Information', 'Perf. Metrics', 'Feature Importance', 'Residual Analysis', 'SHAP Analysis', 'Visualizations'])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(['Information', 'Perf. Metrics', 'Feature Importance', 'Residual Analysis', 'SHAP Analysis'])
     
     with tab1:
         st.header("Explainable AI Information") 
@@ -756,21 +754,23 @@ elif view_type == "insights":
         st.header("Model Performance Metrics")
         st.divider()
         
-        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, 2)
-    
+        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, selected_target, 2)
+        
     with tab3:
-        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, 3)
+        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, selected_target, 3)
     
     with tab4:
-        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, 4)
+        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, selected_target, 4)
     
     with tab5:
-        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, 5)
+        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, selected_target, 5)
         
         
 
 elif view_type == "forecast":
-    st.write("Under Developent -- Will Be Removed")
+    forecast_df = forecast_60_months(monthly, model)
+    plot_forecast_view(outputs, selected_target)
+    st.dataframe(forecast_df, use_container_width=True)
     
     
 # Update the Taskbar Clock
