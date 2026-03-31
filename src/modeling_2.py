@@ -22,39 +22,36 @@ def load_model_outputs():
     aeso_clean = load_clean_data()
     return run_modeling_pipeline(aeso_clean)
 
-def plot_prediction_view(outputs, selected_target):
-    train_df = outputs["train_df"]
-    test_df = outputs["test_df"]
-    results = outputs["results"]
+def plot_prediction_view(train_df, test_df, results, target):
 
     fig, ax = plt.subplots(figsize=(12, 5))
 
-    if selected_target == "solar_generation_per_capacity":
+    if target == "solar_generation_per_capacity":
         ax.plot(train_df["time"], train_df["solar_generation_per_capacity"], label="Train")
         ax.plot(test_df["time"], test_df["solar_generation_per_capacity"], label="Test Actual")
         ax.plot(results["time"], results["pred"], label="Test Predicted")
-    elif selected_target == "total_generation__solar":
+    elif target == "total_generation__solar":
         ax.plot(results["time"], results["actual_total_generation__solar"], label="Actual")
         ax.plot(results["time"], results["pred_total_generation__solar"], label="Predicted")
-    elif selected_target == "solar_market_share":
+    elif target == "solar_market_share":
         ax.plot(results["time"], results["actual_solar_market_share"], label="Actual")
         ax.plot(results["time"], results["pred_solar_market_share"], label="Predicted")
-    elif selected_target == "emissions_avoided":
+    elif target == "emissions_avoided":
         ax.plot(results["time"], results["actual_emissions_avoided"], label="Actual")
         ax.plot(results["time"], results["pred_emissions_avoided"], label="Predicted")
 
     ax.legend()
     ax.grid(True, alpha=0.3)
     plt.subplots_adjust(
-        left=0.1,
+        left=0.,
         right=0.9,
         top=0.95,
         bottom=0.05
     )       
     st.plotly_chart(fig, use_container_width=True)
 
-def plot_xai_view(outputs):
-    fi = outputs["feature_importance"]
+def plot_xai_view(features):
+    fi = features["feature_importance"]
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.barh(fi["feature"], fi["importance"])
     ax.invert_yaxis()
@@ -67,7 +64,7 @@ def plot_xai_view(outputs):
     st.plotly_chart(fig, use_container_width=True)
 
 
-def plot_forecast_view(outputs, selected_target):
+def plot_forecast_view(outputs, target):
     monthly = outputs["monthly"]
     forecast_df = outputs["forecast_df"]
 
@@ -111,4 +108,3 @@ def plot_forecast_view(outputs, selected_target):
     st.plotly_chart(fig)
 
 
-outputs = load_model_outputs()
