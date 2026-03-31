@@ -255,17 +255,8 @@ with col4:
 
 st.divider()
 st.header("Recent Dev Updates:")
-st.write("3/28/26 - Reverted Icon IMGs - .GIF > .PNG - Size Increase of ~700Kb")
 st.write("3/29/26 - Restructured M-Learning Page -- XAI Section Completed")
 st.write("3/30/26 - Fixed M-Learning Model Compatibility - Reduced Load to Cache Time")
 st.write("3/31/26 - Fixed Interactivity Selecting Different Output Types for M-Learning Page.")
 st.write("3/31/26 - Added Information to Model's Perf. Metrics, Feature importance & Residual Analysis")
 st.write("3/31/26 - Fixed Metrics Value 'Blow Up'")
-
-st.subheader("**TO DO:**") 
-st.write("Complete Predictions View in M-Learning Page")
-st.write("Add In Visual Customization for Predictions View")
-st.write("Add in Written Information, Metrics, KPIs for Pages")
-st.write("Feature-Enhance Environmental Impacts Page")
-st.write("Feature-Enhance Analytics Page - Descriptive/Graphical")
-st.divider()
