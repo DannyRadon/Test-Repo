@@ -1,13 +1,11 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 # Import Pool
 import urllib.parse
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.express as px
 import plotly.tools as tls
 import matplotlib.pyplot as plt
@@ -21,26 +19,9 @@ from src.aeso_cleaning_fe1 import *
 from src.modeling_2 import *
 
 
-
 st.title("Machine Learning & Forecasting")
 
-# ----------------------------
-# DATA PIPELINE
-# ----------------------------
 
-@st.cache_data
-def load_clean_data():
-    aeso = load_data_aeso()
-    return clean_fe1(aeso)
-
-
-# Loading in the Cleaned Set
-aeso_clean = load_clean_data()
-
-# Processing Cleaned Dataset for Model 3
-df_model, features, target = ProcessDataM3(aeso_clean)
-
-y_test_model, test_pred, results, test_df, model, X_train = TrainModel3(df_model, features, target)
 # ------------------------------- THIS SECTION IS TO SETUP & OPERATE THE GUI MENU LOGIC ----------------------------------- |
 
 
@@ -651,38 +632,57 @@ if y_test == "avoided":
 # ------------------------------------------------- ACTUAL PROGRAMMING SECTION WITH DATA AND ENGINE -----------------------------------------------
 
 
+# ----------------------------
+# DATA PIPELINE
+# ----------------------------
+
+@st.cache_data
+def load_clean_data():
+    aeso = load_data_aeso()
+    return clean_fe1(aeso)
+
+
+# Loading in the Cleaned Set
+aeso_clean = load_clean_data()
+
+# This one is required for the XAI Plots for now -- Until I find a better way
+monthly = fe(aeso_clean)
+
+# Processing Cleaned Dataset for Model 3
+df_model, features, target = ProcessDataM3(aeso_clean)
+
+y_test_model, test_pred, results, test_df, model, X_train, train_df, metrics = TrainModel3(df_model, features, target, monthly)
 
 
 
-# ---------------------------- And a Double-Thank You Here...
 # RENDER LOGIC
 # ----------------------------
 
 
 if view_type == "prediction":
-    plot_prediction_view(outputs, selected_target)
-    metrics = outputs["metrics"][selected_target]
+    plot_prediction_view(train_df, test_df, results, target)
+    metrics = metrics[selected_target]
 
 
 elif view_type == "insights":
     st.title("Explainable AI")
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(['Information', 'Performance Metrics', 'Feature Importance', 'Residual Analysis', 'SHAP Analysis', 'Visualizations'])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(['Information', 'Perf. Metrics', 'Feature Importance', 'Residual Analysis', 'SHAP Analysis', 'Visualizations'])
     
     with tab1:
         st.header("Explainable AI Information") 
         st.divider()
         
-        st.subheader("What is Explainable AI?")
+        st.subheader("**What is Explainable AI?**")
         st.write("Explainable AI (XAI) is a set of processes and methods which help human users to observe, comprehend and trust the results created by a Machine Learning Algorithm.")
         st.write("")
         
         st.subheader("How is a Model Explainable?")
-        st.write("One part to a Model's Explainability involves Performance Metrics such as:")
+        st.write("One part to a Model's Explainability involves **Performance Metrics** such as:")
         
         sub1, sub2, sub3 = st.tabs(['RMSE', 'MAE', 'R²'])
         
         with sub1:
-            st.header("RMSE - Root Mean Square Error")
+            st.header("RMSE: Root Mean Square Error")
             st.divider()
             st.write("The Root Mean Square Error (RMSE) is a standard metric used in Machine Learning to measure the accuracy of a model, particularly a 'Regression Model'.") 
             st.write("The computed value represents the average difference between what was predicted and what was actual.")
@@ -691,7 +691,7 @@ elif view_type == "insights":
             st.write("Units with RMSE is expressed in the same units as the target variable")
             st.subheader("Usage Warning:")
             st.write("RMSE squares the errors before averaging them, allowing higher influence to be given to large errors.")
-            st.write("This makes it more sensitive to outliers compared to other Performance Metrics like Mean Absolute Error (MAE).")
+            st.write("This makes it more sensitive to outliers compared to other **Performance Metrics** like Mean Absolute Error (MAE).")
             
         with sub2:
             st.header("MAE: Mean Absolute Error")
@@ -702,7 +702,7 @@ elif view_type == "insights":
             st.write("MAE allows developers to track the accuracy across time or data splits to identify performance degradation.")
             st.write("Units with MAE are expressed in the same units as the target variable")
             st.write("To intrepret a calculated MAE value; the output represents the distance away from the actual. Values closer to '0' represent a better fit. When the value equals '0' it represents a perfect fit.")
-
+        
         with sub3:
             st.header("R²: R-Squared")
             st.divider()
@@ -749,6 +749,7 @@ elif view_type == "insights":
             st.write("The center line represents the **Model's Average Starting Point** or 'baseline'. Points to the right of center influenced the prediction further. Points to the left of center dragged the prediction lower.")
             st.write("Additionally, red points indicate that the feature value was 'high' while blue dots indicate that the feature value was 'low'.")
             
+    
     with tab2:
         st.header("Model Performance Metrics")
         st.divider()
@@ -763,10 +764,13 @@ elif view_type == "insights":
     
     with tab5:
         EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, 5)
+        
+        
 
 elif view_type == "forecast":
+    forecast_df = forecast_60_months(monthly, model)
     plot_forecast_view(outputs, selected_target)
-    st.dataframe(outputs["forecast_df"], use_container_width=True)
+    st.dataframe(forecast_df, use_container_width=True)
     
     
 # Update the Taskbar Clock
