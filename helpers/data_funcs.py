@@ -421,10 +421,7 @@ def calculator(width=350, height=450):
 
 
 
-
-
-
-
+# Re-Structured Pipeline Down Below -------------------------------------------------------
 # Data Cleaning Function for AESO
 def clean_fe1(aeso):
     # CLEANINg
@@ -526,7 +523,9 @@ def fe(aeso_clean):
 
 # Data Processing Function for Model 3
 @st.cache_data
-def ProcessDataM3(aeso_fe):
+def ProcessDataM3(aeso_fe, selected_target):
+    
+    target = selected_target
     
     # monthly df
     monthly_gen = (
@@ -610,14 +609,14 @@ def ProcessDataM3(aeso_fe):
     
     df_model = df.dropna().reset_index(drop=True)    
     
-    return df_model, features, target
+    return df_model, features, selected_target
 
 
 
 # Training Function for Model-3
 
 @st.cache_data
-def TrainModel3(df_model, features, target, monthly):
+def TrainModel3(df_model, features, selected_target, monthly):
     
     # train/test split
     test_size = int(np.ceil(len(df_model) * 0.20))
@@ -625,10 +624,10 @@ def TrainModel3(df_model, features, target, monthly):
     test_df  = df_model.iloc[-test_size:].copy()
     
     X_train = train_df[features]
-    y_train = train_df[target]
+    y_train = train_df[selected_target]
     
     X_test = test_df[features]
-    y_test = test_df[target]
+    y_test = test_df[selected_target]
     
     
     # train model XGBoost
@@ -679,7 +678,7 @@ def TrainModel3(df_model, features, target, monthly):
 # Evaluation Function for Model 3
 def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train, page_tab):
     
-    # evaluate main target
+    # evaluate main selected_target
     rmse = np.sqrt(mean_squared_error(y_test, test_pred))
     mae = mean_absolute_error(y_test, test_pred)
     r2 = r2_score(y_test, test_pred)
