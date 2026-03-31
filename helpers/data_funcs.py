@@ -4,14 +4,17 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import seaborn as sns
 import base64
 
 import matplotlib.pyplot as plt
 import plotly.express as px
+import seaborn as sns
+
+import streamlit.components.v1 as stc
 
 from xgboost import XGBRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+
 
 # Helper Function - Converting Icon Images to Base64 Encoding for Dash-Display
 @st.cache_data
@@ -230,7 +233,7 @@ def aeso_yearly_agg(df, datetime_col="DateTime"):
 
 def monthly_agg(df, data_col):
     df['time'] = pd.to_datetime(df['time'], errors='coerce')
-    
+    u
     df_agg = (
         df.groupby(df['time'].dt.to_period('M'))[data_col]
         .sum()
@@ -289,6 +292,8 @@ def build_url(**kwargs):
     return f"?{query_string}"
 
 
+
+
 # THIS FUNCTION IS SPECIFICALLY FOR THE ML PAGE SO THAT THE VARIABLES DONT CONFLICT WITH ANALYTICS PAGE...
 
 def build_url_ml(**kwargs):
@@ -308,6 +313,8 @@ def build_url_ml(**kwargs):
     return f"?{query_string}"
 
 
+
+
 def build_impact_url(toggle_var):
     """
     Adds the variable to the list if it's not there, 
@@ -323,9 +330,12 @@ def build_impact_url(toggle_var):
     # Join list into a comma-separated string for the URL: ?impacts=carbon,trees
     params = dict(st.query_params)
     params['impacts'] = ",".join(new_vars)
+ 
     return "?" + urllib.parse.urlencode(params)
 
-    # Sample toggle handler
+
+
+
 def toggle_impact(impact_name):
     current = st.session_state.selected_impacts
     if impact_name in current:
@@ -333,6 +343,9 @@ def toggle_impact(impact_name):
     else:
         current.append(impact_name)
     st.session_state.selected_impacts = current
+
+
+
 
 
 def build_treemap(df, site_name):
@@ -368,6 +381,7 @@ def build_treemap(df, site_name):
     st.plotly_chart(fig, use_container_width=True)
 
 
+
 @st.cache_data
 def load_data_aeso():
     aeso = pd.read_csv("data/aeso_pool_genv2.csv")
@@ -393,8 +407,124 @@ def aeso_daily_agg(df, datetime_col="DateTime"):
     return df_daily
 
 
-# Data Processing Pipeline Function for Model 3
+# CODE SECTION FOR UTILITIES / TOOLS -----------------------------------
 
+def calculator(width=350, height=450):
+    
+    with open("utils/calculator.html", "r") as calc_file:
+        page = calc_file.read()
+        stc.html(page, width=width, height=height, scrolling=False)
+    
+    # Encode it so the IFrame can read it as a source
+    b64_calc = base64.b64encode(calc_html.encode()).decode()
+    calc_src = f"data:text/html;base64,{b64_calc}"    
+
+
+
+
+
+
+
+# Data Cleaning Function for AESO
+def clean_fe1(aeso):
+    # CLEANINg
+    aeso_clean = aeso.copy()
+    aeso__clean = aeso.drop(columns=['Unnamed: 0', 'forecast_pool_price'])
+    # Transform datetime into cols
+    aeso__clean['DateTime'] = pd.to_datetime(aeso__clean['DateTime'], format="%Y-%m-%d %H:%M")
+    aeso__clean['year'] = aeso__clean['DateTime'].dt.year
+    aeso__clean['month'] = aeso__clean['DateTime'].dt.month
+    aeso__clean['day'] = aeso__clean['DateTime'].dt.day
+    aeso__clean['hour'] = aeso__clean['DateTime'].dt.hour
+
+    # sort values by datetime
+    aeso__clean = aeso__clean.sort_values('DateTime').reset_index(drop=True)
+
+    # impute negative values of total generation solar to 0
+    aeso__clean['total_generation__solar'] = aeso__clean['total_generation__solar'].apply(lambda x: 0 if x < 0 else x)
+
+
+    # New feature: total generation summed for all fuel types over each row (ie. hour)
+    aeso__clean['total_gen_all'] = aeso__clean[[col for col in aeso__clean.columns if 'total_generation__' in col]].sum(axis=1)
+
+    # new feature: solar market share  ---> target feature
+    aeso__clean['solar_market_share_total_gen'] = np.where(
+      aeso__clean['total_gen_all'] > 0,
+    aeso__clean['total_generation__solar'] / aeso__clean['total_gen_all'],
+    np.nan
+)
+
+    # New feature: emissions avoided with solar (0.52tonnes CO2/MWh)
+    aeso__clean['emissions_avoided'] = aeso__clean['total_generation__solar'] * 0.52
+
+    ## modeling target feature :solar_generation_per_capacity ----> use these predicted values to calucalte actual target of solar market share
+    aeso__clean['solar_generation_per_capacity'] = (
+      aeso__clean['total_generation__solar'] / aeso__clean['maximum_capacity__solar']
+  )
+
+    return aeso__clean
+
+
+
+# Function for Feature Engineering Cleaned AESO Dataset
+def fe(aeso_clean):
+    
+    EMISSIONS_FACTOR = 0.52
+    
+    monthly = (
+        aeso_clean.groupby(['year', 'month'], as_index=False)
+        .agg({
+            'total_generation__solar': 'sum',
+            'maximum_capacity__solar': 'mean',
+            'system_available__solar': 'mean',
+            'pool_price': 'mean',
+            'total_gen_all': 'sum',
+            'emissions_avoided': 'sum'
+        })
+    )
+
+    monthly['time'] = pd.to_datetime(
+        monthly[['year', 'month']].assign(day=1)
+    )
+    monthly = monthly.sort_values('time').reset_index(drop=True)
+
+    monthly['solar_generation_per_capacity'] = (
+        monthly['total_generation__solar'] / monthly['maximum_capacity__solar']
+    )
+
+    monthly['solar_market_share'] = (
+        monthly['total_generation__solar'] / monthly['total_gen_all']
+    )
+
+    target = 'solar_generation_per_capacity'
+
+    monthly['time_index'] = np.arange(len(monthly))
+    monthly['month_num'] = monthly['time'].dt.month
+
+    for k in range(1, 5):
+        monthly[f'sin_year_{k}'] = np.sin(2 * np.pi * k * monthly['month_num'] / 12)
+        monthly[f'cos_year_{k}'] = np.cos(2 * np.pi * k * monthly['month_num'] / 12)
+
+    monthly['availability_ratio'] = (
+        monthly['system_available__solar'] / monthly['maximum_capacity__solar']
+    )
+
+    monthly['gen_per_cap_lag_1'] = monthly[target].shift(1)
+    monthly['gen_per_cap_lag_12'] = monthly[target].shift(12)
+
+    monthly['pool_price_roll_3'] = monthly['pool_price'].shift(1).rolling(3).mean()
+    monthly['pool_price_roll_6'] = monthly['pool_price'].shift(1).rolling(6).mean()
+
+    monthly = (
+        monthly.replace([np.inf, -np.inf], np.nan)
+        .dropna()
+        .reset_index(drop=True)
+    )
+
+    return monthly
+
+
+# Data Processing Function for Model 3
 @st.cache_data
 def ProcessDataM3(aeso_fe):
     
@@ -486,8 +616,8 @@ def ProcessDataM3(aeso_fe):
 
 # Training Function for Model-3
 
-@st.cache_resource
-def TrainModel3(df_model, features, target):
+@st.cache_data
+def TrainModel3(df_model, features, target, monthly):
     
     # train/test split
     test_size = int(np.ceil(len(df_model) * 0.20))
@@ -500,10 +630,6 @@ def TrainModel3(df_model, features, target):
     X_test = test_df[features]
     y_test = test_df[target]
     
-    print("\nTrain size:", len(train_df))
-    print("Test size :", len(test_df))
-    print("Train range:", train_df['time'].min(), "to", train_df['time'].max())
-    print("Test range :", test_df['time'].min(), "to", test_df['time'].max())
     
     # train model XGBoost
     model = XGBRegressor(
@@ -525,10 +651,28 @@ def TrainModel3(df_model, features, target):
     results['actual'] = y_test.values
     results['pred'] = test_pred
     results['error'] = results['actual'] - results['pred']
-    results['abs_error'] = np.abs(results['error'])    
+    results['abs_error'] = np.abs(results['error'])
     
+    rmse = np.sqrt(mean_squared_error(y_test, test_pred))
+    mae = mean_absolute_error(y_test, test_pred)
+    r2 = r2_score(y_test, test_pred)
+    mape = np.mean(np.abs((y_test - test_pred) / y_test)) * 100    
     
-    return y_test, test_pred, results, test_df, model, X_train
+    main_metrics = {
+        "RMSE": rmse,
+        "MAE": mae,
+        "R2": r2,
+        "MAPE": mape
+    }
+    
+    metrics = {
+        "solar_generation_per_capacity": main_metrics,
+        "total_generation__solar": main_metrics,
+        "solar_market_share": main_metrics,
+        "emissions_avoided": main_metrics
+    }    
+    
+    return y_test, test_pred, results, test_df, model, X_train, train_df, metrics
 
 
 
@@ -760,4 +904,4 @@ def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train
                 
             else:
                 print(f"\nNo data found for {month_name} {target_year} in the test set.")
-         
+        
