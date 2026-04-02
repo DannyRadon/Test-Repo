@@ -1,5 +1,7 @@
 # Importing Streamlit to Initialize Engine + Custom GUI System
 import streamlit as st
+from helpers.data_funcs import *
+from helpers.data_load import *
 
 # This CSS creates the Gradient Background 
 st.markdown("""
@@ -461,8 +463,7 @@ with col5:
 import pandas as pd
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
-from helpers.data_funcs import *
-from helpers.data_load import *
+
         
 
 # -----------------------------------------------------------------------------
