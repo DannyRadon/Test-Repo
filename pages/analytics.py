@@ -16,16 +16,6 @@ from st_click_detector import click_detector
 from helpers.data_load import load_data
 from helpers.data_funcs import *
 
-from utils import *
-
-
-
-with open("utils/calculator.html", "r") as calc_file:
-    page = calc_file.read()
-
-# Encoding (b64) the Calculator HTML File so Streamlit iFrame can Read it as a Source...
-b64_calc = base64.b64encode(page.encode()).decode()
-calc_src = f"data:text/html;base64,{b64_calc}" 
 
 
 
