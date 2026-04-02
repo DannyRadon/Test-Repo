@@ -1,101 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
-import matplotlib.pyplot as plt
-
-# Import Pool
-import urllib.parse
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-import plotly.tools as tls
-import matplotlib.pyplot as plt
-
-from st_click_detector import click_detector
-from helpers.data_load import load_data
-from helpers.data_funcs import *
-
-# Imported ML pieces
-from src.aeso_cleaning_fe1 import *
-from src.modeling_2 import *
-
-
-st.title("Machine Learning & Forecasting")
-
-
-# ------------------------------- THIS SECTION IS TO SETUP & OPERATE THE GUI MENU LOGIC ----------------------------------- |
-
-
-params = st.query_params
-
-# --- SYNC URL TO SESSION STATE --- |
-for url_key, state_key in [
-    ("graph", "graph_type"), 
-    ("x", "x"), 
-    ("y_test", "y_test"),
-    ("view_type", "view_type")
-]:
-    if url_key in st.query_params:
-        st.session_state[state_key] = st.query_params[url_key]
-
-
-
-
-# --- SETTING DEFAULTS --- If the app is opened for the first time (no URL params)
-        
-        
-if "graph_type" not in st.session_state:
-    st.session_state.graph_type = "Line"
-        
-if "x" not in st.session_state:
-    st.session_state.x = "DateTime"
-        
-if "y_test" not in st.session_state:
-    st.session_state.y_test = "gen_cap"
-        
-if "view_type" not in st.session_state:
-    st.session_state.view_type = "prediction"
-        
-if "dataflow" not in st.session_state:
-    st.session_state.dataflow = "None"
-
-
-
-# ----------------------------------------- Initializing & Building HTML URLs --- Used for GUI Click Detection Logic -----------------------|
-
-
-# Import & Export URLs
-url_export = build_url_ml(dataflow="Export")
-
-# Graph Visualization URLs
-url_bar = build_url_ml(graph="Bar")
-url_line = build_url_ml(graph="Line")
-url_area = build_url_ml(graph="Area")
-url_scatter = build_url_ml(graph="Scatter")
-
-# View Mode URLs
-url_pred = build_url_ml(view_type="prediction")
-url_xai = build_url_ml(view_type="insights")
-url_fore = build_url_ml(view_type="forecast")
-
-
-# Output URLs 
-url_gencap = build_url_ml(y_test="gen_cap")
-url_share = build_url_ml(y_test="share")
-url_total = build_url_ml(y_test="gen_total")
-url_avoided = build_url_ml(y_test="avoided")
-
-
-# Global Variables to Use for State Session Updates & Calls
-vis_type = st.session_state.graph_type
-y_test = st.session_state.y_test
-dataflow = st.session_state.dataflow
-view_type = st.session_state.view_type
-
-
-# ----------------------------  This CSS SECTION (MARKDOWN) SETS UP THE CLICKABLE ICONS AND CANVAS (HOME, SYS INFO, ETC) --------------------------------- \
-
-
-
 
 # This CSS creates the Gradient MAIN Background 
 st.markdown("""
@@ -108,11 +11,23 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+
+import streamlit.components.v1 as components
+import matplotlib.pyplot as plt
+from helpers.data_load import load_data
+from helpers.data_funcs import *
+
+# Imported ML pieces
+from src.aeso_cleaning_fe1 import *
+from src.modeling_2 import *
+
+
 # Loading in the Icons
 icon_sys_info = get_base64_image("static/icon_sysinfo.png")
 icon_impacts_info = get_base64_image("static/icon_impacts.png")
 icon_analytics_info = get_base64_image("static/icon_analytics.png")
 icon_home = get_base64_image("static/icon_home.png")
+icon_chat = get_base64_image("static/icon_chat.png")
 
 
 # THIS MARKDOWN FILE HANDLES THE TOP BAR & SIDE-BAR GUI APPEARANCES
@@ -472,13 +387,17 @@ st.markdown(f'''
         <img src="data:image/png;base64,{icon_analytics_info}">
         <div class="card-text">Analytics</div>
     </div>
+    <div class="icon-card">
+        <img src="data:image/png;base64,{icon_chat}">
+        <div class="card-text">Chat</div>
+    </div>
 </div>
 ''', unsafe_allow_html=True)
 
 
 # Clickable-Icon Navigation Area -- Routing to Other Pages -- this is what allows interactivity 
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
     if st.button(" ", key="home_btn"):
         st.switch_page("home.py")
@@ -494,10 +413,99 @@ with col3:
 with col4:
     if st.button(" ", key="ml_info_btn"):
         st.switch_page("pages/analytics.py")
-        
-        
-        
 
+with col5:
+    if st.button(" ", key="chat_btn"):
+        st.switch_page("pages/chat.py")
+
+
+
+# Import Pool
+import urllib.parse
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import plotly.tools as tls
+import matplotlib.pyplot as plt
+
+from st_click_detector import click_detector
+
+
+
+st.title("Machine Learning & Forecasting")
+
+
+# ------------------------------- THIS SECTION IS TO SETUP & OPERATE THE GUI MENU LOGIC ----------------------------------- |
+
+
+params = st.query_params
+
+# --- SYNC URL TO SESSION STATE --- |
+for url_key, state_key in [
+    ("graph", "graph_type"), 
+    ("x", "x"), 
+    ("y_test", "y_test"),
+    ("view_type", "view_type")
+]:
+    if url_key in st.query_params:
+        st.session_state[state_key] = st.query_params[url_key]
+
+
+
+
+# --- SETTING DEFAULTS --- If the app is opened for the first time (no URL params)
+        
+        
+if "graph_type" not in st.session_state:
+    st.session_state.graph_type = "Line"
+        
+if "x" not in st.session_state:
+    st.session_state.x = "DateTime"
+        
+if "y_test" not in st.session_state:
+    st.session_state.y_test = "gen_cap"
+        
+if "view_type" not in st.session_state:
+    st.session_state.view_type = "prediction"
+        
+if "dataflow" not in st.session_state:
+    st.session_state.dataflow = "None"
+
+
+
+# ----------------------------------------- Initializing & Building HTML URLs --- Used for GUI Click Detection Logic -----------------------|
+
+
+# Import & Export URLs
+url_export = build_url_ml(dataflow="Export")
+
+# Graph Visualization URLs
+url_bar = build_url_ml(graph="Bar")
+url_line = build_url_ml(graph="Line")
+url_area = build_url_ml(graph="Area")
+url_scatter = build_url_ml(graph="Scatter")
+
+# View Mode URLs
+url_pred = build_url_ml(view_type="prediction")
+url_xai = build_url_ml(view_type="insights")
+url_fore = build_url_ml(view_type="forecast")
+
+
+# Output URLs 
+url_gencap = build_url_ml(y_test="gen_cap")
+url_share = build_url_ml(y_test="share")
+url_total = build_url_ml(y_test="gen_total")
+url_avoided = build_url_ml(y_test="avoided")
+
+
+# Global Variables to Use for State Session Updates & Calls
+vis_type = st.session_state.graph_type
+y_test = st.session_state.y_test
+dataflow = st.session_state.dataflow
+view_type = st.session_state.view_type
+
+
+        
 
 
 # ---------------- WARNING! ------------------------------ NASTY HTML SECTION HANDLING THE BRIDGE BETWEEN GUI CLICK & ST ENGINE ----------------------------- WARNING! ----------------------------|
@@ -768,7 +776,7 @@ elif view_type == "insights":
         
 
 elif view_type == "forecast":
-    st.write("In Development -- WILL BE MOVED TO PREDICTIONS VIEW")
+    st.write("In Development -- WILL BE REMOVED")
     
     
 # Update the Taskbar Clock
