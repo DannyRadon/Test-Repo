@@ -1,10 +1,5 @@
-
+# Importing Streamlit to Initialize Engine + Custom GUI System
 import streamlit as st
-import pandas as pd
-from sentence_transformers import SentenceTransformer, util
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
-from helpers.data_funcs import *
-from helpers.data_load import *
 
 # This CSS creates the Gradient Background 
 st.markdown("""
@@ -15,7 +10,6 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
-
 
 # Loading in the Icons
 icon_sys_info = get_base64_image("static/icon_sysinfo.png")
@@ -381,17 +375,8 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-st.markdown("""
-<style>
-[data-testid="stBottomBlockContainer"],
-[data-testid="stChatInputContainer"],
-section[data-testid="stChatInput"] {
-    background: rgba(0,0,0,0) !important;
-    box-shadow: none !important;
-    border: none !important;
-}
-</style>
-""", unsafe_allow_html=True)
+
+
 st.markdown("""
 <style>
 
@@ -441,7 +426,9 @@ st.markdown(f'''
         <div class="card-text">M-Learning</div>
     </div>
     <div class="icon-card">
-        <img src="data:image/png;base64,{icon_analytics}>
+        <img src="data:image/png;base64,{icon_analytics}">
+        <div class="card-text">Analytics</div>
+    </div>
 </div>
 ''', unsafe_allow_html=True)
 
@@ -468,6 +455,15 @@ with col4:
 with col5:
     if st.button(" ", key="analytics_info_btn"):
         st.switch_page("pages/analytics.py")
+
+
+
+import pandas as pd
+from sentence_transformers import SentenceTransformer, util
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
+from helpers.data_funcs import *
+from helpers.data_load import *
+        
 
 # -----------------------------------------------------------------------------
 # 1. Resource Loading (Cached for Speed)
@@ -603,7 +599,15 @@ def query_llm(query, context):
 # 4. Streamlit Chat Interface
 # -----------------------------------------------------------------------------
 
-st.title("📊 Energy Dashboard RAG Chatbot")
+# This function is just here to help clear the text field from st.text_input (I didn't use st.chat because the docker conflicts with the custom GUI color scheme [Can't Modify])
+def submit():
+    # Store the input in a separate session state key before clearing the widget
+    st.session_state.temp_prompt = st.session_state.chat_input
+    # Clear the text input widget itself
+    st.session_state.chat_input = ""
+
+st.title("Dashboard RAG Chatbot")
+st.subheader("--EXPERIMENTAL--")
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -619,6 +623,8 @@ if prompt := st.text_input("", placeholder="Ask me about the data...", key="chat
     # Display user message
     st.chat_message("user").markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
+    
+    
 
     # Generate Response
     with st.chat_message("assistant"):
@@ -629,6 +635,7 @@ if prompt := st.text_input("", placeholder="Ask me about the data...", key="chat
             
     # Add assistant response to history
     st.session_state.messages.append({"role": "assistant", "content": response})
+    
 
 # ------------------------ Dashboard Page Building Section ---------------------
 
