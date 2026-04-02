@@ -17,6 +17,7 @@ icon_eda_info = get_base64_image("static/icon_analytics.png")
 icon_impacts_info = get_base64_image("static/icon_impacts.png")
 icon_ml_info = get_base64_image("static/icon_ml.png")
 icon_home = get_base64_image("static/icon_home.png")
+icon_chat = get_base64_image("static/icon_chat.png")
 
 
 # This CSS creates the Gradient Background -- The Main Background
@@ -221,6 +222,10 @@ st.markdown(f'''
         <img src="data:image/png;base64,{icon_ml_info}">
         <div class="card-text">M-Learning</div>
     </div>
+    <div class="icon-card">
+        <img src="data:image/png;base64,{icon_chat}">
+        <div class="card-text">Chat</div>
+    </div>
 </div>
 ''', unsafe_allow_html=True)
 
@@ -231,7 +236,7 @@ st.markdown(f'''
 
 # Clickable-Icon Navigation Area -- Routing to Other Pages -- this is what allows interactivity 
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
     if st.button(" ", key="home_btn"):
         st.switch_page("home.py")
@@ -247,6 +252,10 @@ with col3:
 with col4:
     if st.button(" ", key="ml_info_btn"):
         st.switch_page("pages/ml.py")
+
+with col5:
+    if st.button(" ", key="chat_btn"):
+        st.switch_page("pages/chat.py")
 
 st.divider()
 
