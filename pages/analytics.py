@@ -1,6 +1,7 @@
 # ---------------------------------------- Test File for Side-Bar Navigation  --------------------------------------------------------
 
 # Import Pool
+import base64
 import urllib.parse
 
 import streamlit as st
@@ -11,8 +12,22 @@ import plotly.express as px
 import matplotlib.pyplot as plt
 
 from st_click_detector import click_detector
+
 from helpers.data_load import load_data
 from helpers.data_funcs import *
+
+from utils import *
+
+
+
+with open("utils/calculator.html", "r") as calc_file:
+    page = calc_file.read()
+
+# Encoding (b64) the Calculator HTML File so Streamlit iFrame can Read it as a Source...
+b64_calc = base64.b64encode(page.encode()).decode()
+calc_src = f"data:text/html;base64,{b64_calc}" 
+
+
 
 # Loading in the Data (If Not Cached)
 df_visser, df_bissell, df_aeso = load_data()
@@ -27,7 +42,8 @@ for url_key, state_key in [
     ("graph", "graph_type"), 
     ("x_var", "x_var"), 
     ("y_var", "y_var"),
-    ("view", "view_mode")
+    ("view", "view_mode"),
+    ("calc_btn", "calc_btn")
 ]:
     if url_key in st.query_params:
         st.session_state[state_key] = st.query_params[url_key]
@@ -52,6 +68,9 @@ if "view_mode" not in st.session_state:
 
 if "dataflow" not in st.session_state:
     st.session_state.dataflow = "None"
+
+if "calc_btn" not in st.session_state:
+    st.session_state.calc_btn = False
 
 
 # --- GENERATING DYNAMIC URL LINKS ---
@@ -107,6 +126,9 @@ url_gas = build_url(y_var="gas")
 
 
 
+
+
+
 # Global Variables to Use for State Session Updates & Calls
 df_selection = st.session_state.dataset
 vis_type = st.session_state.graph_type
@@ -124,6 +146,7 @@ view_mode = st.session_state.view_mode
 dataflow = st.session_state.dataflow
 
 
+
 # State Session Checks for Current Dataset(s)
 if df_selection == "Bissell Thrift":
     df = df_bissell.copy()
@@ -136,8 +159,10 @@ elif df_selection == "New Jubilee":
 else:
     df = df_aeso.copy()
     df_select = "AESO"
-
-
+    
+    
+    
+    
 
 # ------------------------------------------ CSS & HTML GRAPHICS HANDLING SECTION ------------------------------------------
 
@@ -151,12 +176,16 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+def function(name):
+    pass
+
 
 # Loading in the Icons
 icon_sys_info = get_base64_image("static/icon_sysinfo.png")
 icon_impacts_info = get_base64_image("static/icon_impacts.png")
 icon_ml_info = get_base64_image("static/icon_ml.png")
 icon_home = get_base64_image("static/icon_home.png")
+icon_chat = get_base64_image("static/icon_chat.png")
 
 # Title for the Page
 st.title("Exploratory Analytics")
@@ -470,6 +499,9 @@ div[data-testid="stWidgetLabel"] {
     color: white !important;
 }
 </style>
+
+
+
 """, unsafe_allow_html=True)
 
 
@@ -518,13 +550,17 @@ st.markdown(f'''
         <img src="data:image/png;base64,{icon_ml_info}">
         <div class="card-text">M-Learning</div>
     </div>
+    <div class="icon-card">
+        <img src="data:image/png;base64,{icon_chat}">
+        <div class="card-text">Chat</div>
+    </div>
 </div>
 ''', unsafe_allow_html=True)
 
 
 # Clickable-Icon Navigation Area -- Routing to Other Pages -- this is what allows interactivity 
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
     if st.button(" ", key="home_btn"):
         st.switch_page("home.py")
@@ -540,6 +576,11 @@ with col3:
 with col4:
     if st.button(" ", key="ml_info_btn"):
         st.switch_page("pages/ml.py")
+
+with col5:
+    if st.button(" ", key="chat_btn"):
+        st.switch_page("pages/chat.py")
+        
 
 
 
@@ -683,6 +724,13 @@ if df_select == "AESO":
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div class="menu-item">
+            Utils
+            <div class="dropdown">
+                <div>Calculator</div>
+                <div>Write Pad</div>
             </div>
         </div>
         <div class="menu-item">
@@ -887,8 +935,8 @@ if df_select == "AESO":
         setInterval(updateClock, 1000);
         updateClock();
     </script>
-    """, height=0)         
-
+    """, height=0)     
+    
 
 
 
@@ -1018,6 +1066,13 @@ else:
             </div>
         </div>
         <div class="menu-item">
+            Tools
+            <div class="dropdown">
+                <div onclick="toggleCalculator()" style="cursor:pointer; padding: 5px 10px;">Calculator</div>
+                <div>Write Pad</div>
+            </div>
+        </div>
+        <div class="menu-item">
             Help
             <div class="dropdown">
                 <div>Dashboard Help</div>
@@ -1025,8 +1080,17 @@ else:
                 <div>About the Dashboard</div>
             </div>
     </div>
+    <div id="calculator-popout" style="display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: white; border: 3px solid #3170de; padding: 20px; z-index: 99999; width: 250px; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
+        <div style="background: #3170de; color: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: bold; font-family: sans-serif;">Calculator</span>
+            <button onclick="toggleCalculator()" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px; font-weight: bold;">&times;</button>
+        </div>
+</div>
     <div class="taskbar-clock" id="taskbar-clock">00:00:00 PM</div>
     <script>
+    
+    // This JavaScript Portion Handles the System-Clock on the Taskbar
+    
         function updateTaskbarClock() {{
             const now = new Date();
             let hours = now.getHours();
@@ -1051,9 +1115,26 @@ else:
         setInterval(updateTaskbarClock, 1000);
         updateTaskbarClock();
     </script>
+    <div id="calculator-window" style="display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); z-index: 100000; background: white; border: 2px solid #3170de; border-radius: 8px; box-shadow: 0px 10px 30px rgba(0,0,0,0.5); width: 350px; height: 500px; overflow: hidden;">
+        <div style="background: #3170de; color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center; cursor: move;">
+            <span style="font-weight: bold; font-family: sans-serif;">Calculator</span>
+            <button onclick="toggleCalculator()" style="background: none; border: none; color: white; cursor: pointer; font-weight: bold; font-size: 18px;">×</button>
+        </div>
+        <iframe src="{calc_src}" style="width: 100%; height: calc(100% - 40px); border: none;"></iframe>
+    </div>
+    <script>
+    function toggleCalculator() {{
+        var win = document.getElementById('calculator-window');
+        if (win.style.display === "none" || win.style.display === "") {{
+            win.style.display = "block";
+        }} else {{
+            win.style.display = "none";
+        }}
+    }}
+    </script>
     """, unsafe_allow_html=True)
     
-    
+   
     # ---------------------------------- CODE SECTION FOR GUI USER INPUT to SYSTEM OUTPUTS --------------------------------------------------------------
     
     
@@ -1067,8 +1148,10 @@ else:
     
     
     # ------------- This Section Handles the Y-Variables for Visuals --------
+    
     if y_var not in ["output", "ratio", "carbon", "trees", "cars", "homes", "coal_e", "coal_t", "gas"]:
         y_var = "output"
+        
     if y_var == "output":
         y_var = "Daily Value Imputed"
         data_action = "Generation"
@@ -1192,14 +1275,6 @@ else:
         updateClock();
     </script>
     """, height=0)    
-    
-    
-    
-    
-
-
-
-
 
     
 
