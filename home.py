@@ -183,6 +183,7 @@ icon_eda_info = get_base64_image("static/icon_analytics.png")
 icon_impacts_info = get_base64_image("static/icon_impacts.png")
 icon_ml_info = get_base64_image("static/icon_ml.png")
 icon_home = get_base64_image("static/icon_home.png")
+icon_chat = get_base64_image("static/icon_chat.png")
 
 
 
@@ -231,12 +232,16 @@ st.markdown(f'''
         <img src="data:image/png;base64,{icon_ml_info}">
         <div class="card-text">M-Learning</div>
     </div>
+    <div class="icon-card">
+        <img src="data:image/png;base64,{icon_chat}">
+        <div class="card-text">Chat</div>
+    </div>
 </div>
 ''', unsafe_allow_html=True)
 
 
 # Overlay invisible buttons -- this is what allows interactivity -- they are like masks...
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
     if st.button(" ", key="sys_info_btn"):
         st.switch_page("pages/system_info.py")
@@ -253,6 +258,11 @@ with col4:
     if st.button(" ", key="ml_info_btn"):
         st.switch_page("pages/ml.py")
 
+with col5:
+    if st.button(" ", key="chat_btn"):
+        st.switch_page("pages/chat.py")
+
+
 st.divider()
 st.header("Recent Dev Updates:")
 st.write("3/29/26 - Restructured M-Learning Page -- XAI Section Completed")
@@ -260,3 +270,4 @@ st.write("3/30/26 - Fixed M-Learning Model Compatibility - Reduced Load to Cache
 st.write("3/31/26 - Fixed Interactivity Selecting Different Output Types for M-Learning Page.")
 st.write("3/31/26 - Added Information to Model's Perf. Metrics, Feature importance & Residual Analysis")
 st.write("3/31/26 - Fixed Metrics Value 'Blow Up'")
+st.write("4/1/26 - Implemented RAG Chatbot (Course Instruction)
