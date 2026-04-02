@@ -33,13 +33,31 @@ aeso_clean = clean_fe1(df_aeso)
 monthly = fe(aeso_clean)
 
 # Generating Narrative
+# Generating Narrative
 bissell_env_narrative = (
     "Environmental Impact Summary (Bissell):\n"
     f"Total CO2 Avoided: {df_bissell['co2_avoided'].sum():.2f} tonnes.\n"
     f"Homes Powered: {df_bissell['homes_powered'].sum():.2f}\n"
+    f"Trees Saved: {df_bissell['trees_saved'].sum()}\n"
+    f"Cars off the road: {df_bissell['cars_offroad'].sum()}"
+    f"Coal Emissions Avoided: {df_bissell['coal_emission_avoided'].sum()}"
+    f"Coal Tonnage Avoided: {df_bissell['coal_tonnage_avoided'].sum()}"
 )
 
-documents = {"bissell_env": bissell_env_narrative}
+
+visser_env_narrative = (
+    "Environmental Impact Summar (New Jubilee Greenhouse):\n"
+    f"Total CO2 Avoided: {df_visser['co2_avoided'].sum():.2f} tonnes.\n"
+    f"Homes Powered: {df_visser['homes_powered'].sum():.2f}\n"
+    f"Trees Saved: {df_visser['trees_saved'].sum()}\n"
+    f"Cars off the road: {df_visser['cars_offroad'].sum()}"
+    f"Coal Emissions Avoided: {df_visser['coal_emission_avoided'].sum()}"
+    f"Coal Tonnage Avoided: {df_visser['coal_tonnage_avoided'].sum()}"   
+)
+
+documents = {"bissell_env": bissell_env_narrative,
+             "greenhouse_env": visser_env_narrative
+}
 
 @st.cache_data
 def compute_embeddings(docs):
