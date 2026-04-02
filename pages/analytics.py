@@ -1105,23 +1105,6 @@ else:
         setInterval(updateTaskbarClock, 1000);
         updateTaskbarClock();
     </script>
-    <div id="calculator-window" style="display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); z-index: 100000; background: white; border: 2px solid #3170de; border-radius: 8px; box-shadow: 0px 10px 30px rgba(0,0,0,0.5); width: 350px; height: 500px; overflow: hidden;">
-        <div style="background: #3170de; color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center; cursor: move;">
-            <span style="font-weight: bold; font-family: sans-serif;">Calculator</span>
-            <button onclick="toggleCalculator()" style="background: none; border: none; color: white; cursor: pointer; font-weight: bold; font-size: 18px;">×</button>
-        </div>
-        <iframe src="{calc_src}" style="width: 100%; height: calc(100% - 40px); border: none;"></iframe>
-    </div>
-    <script>
-    function toggleCalculator() {{
-        var win = document.getElementById('calculator-window');
-        if (win.style.display === "none" || win.style.display === "") {{
-            win.style.display = "block";
-        }} else {{
-            win.style.display = "none";
-        }}
-    }}
-    </script>
     """, unsafe_allow_html=True)
     
    
