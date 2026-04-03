@@ -1167,11 +1167,11 @@ else:
     if x_new in ["daily", "weekly", "monthly", "yearly"]:
     
         if x_new == "weekly":
-            df = weekly_agg(df, y_new)
+            df = weekly_agg(df, y_var)
             range_select = "Weekly"
     
         elif x_new == "monthly":
-            df = monthly_agg(df, y_new)
+            df = monthly_agg(df, y_var)
             range_select = "Monthly"
         
         elif x_new == "daily":
