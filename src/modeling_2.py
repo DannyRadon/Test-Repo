@@ -105,6 +105,30 @@ def plot_prediction_view(train_df, test_df, results, target, g_type):
             plot_bgcolor="rgba(0,0,0,0)",
             paper_bgcolor="rgba(0,0,0,0)"
         )
+    
+    elif g_type == "Box":
+        # Actual
+        fig.add_trace(go.Box(
+            x=results["time"],
+            y=results["actual"],
+            name=f"Actual"
+        ))
+        
+        # Predicted
+        fig.add_trace(go.Box(
+            x=results["time"],
+            y=results["pred"],
+            name=f"Predicted"
+        ))
+        
+        fig.update_layout(
+            title=f"Actual vs Predicted ({target})",
+            xaxis_title="Time",
+            yaxis_title=target,
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)"
+        )        
+        
         
     st.plotly_chart(fig, use_container_width=True)
     
