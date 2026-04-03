@@ -655,14 +655,34 @@ y_test_model, test_pred, results, test_df, model, X_train, train_df, metrics = T
 
 
 
-
 # RENDER LOGIC
 # ----------------------------
 
 
 if view_type == "prediction":
-    plot_prediction_view(train_df, test_df, results, selected_target)
+    st.header("**Model Predictions**")
+    plot_prediction_view(train_df, test_df, results, selected_target, g_type)
+    st.header(f"**Model:** {type(model).__name__}")
+    
+    results["error"] = results["actual"] - results["pred"]
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric("Max Error", f"{results['error'].abs().max():.0f}")
+    
+    with col2:
+        st.metric("Mean Error", f"{results['error'].mean():.2f}")
+    
+    with col3:
+        st.metric("Std Dev", f"{results['error'].std():.2f}")    
+    
+    
     metrics = metrics[selected_target]
+
+
+
+
 
 elif view_type == "insights":
     st.title("Explainable AI")
@@ -767,12 +787,7 @@ elif view_type == "insights":
         st.header("Model's SHAP Analysis")
         EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, selected_target, 5, g_type)
         
-        
-
-elif view_type == "forecast":
-    st.write("Under Development -- Will be Removed")
-    
-    
+      
 # Update the Taskbar Clock
 components.html("""
 <script>
