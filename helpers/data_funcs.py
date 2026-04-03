@@ -245,7 +245,7 @@ def aeso_yearly_agg(df, datetime_col="DateTime"):
 
 def monthly_agg(df, data_col):
     df['time'] = pd.to_datetime(df['time'], errors='coerce')
-    u
+    
     df_agg = (
         df.groupby(df['time'].dt.to_period('M'))[data_col]
         .sum()
