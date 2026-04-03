@@ -527,8 +527,7 @@ st.markdown(f"""
         View
         <div class="dropdown">
             <a href="{url_pred}" target="_self">Predictions</a>
-            <a href="{url_xai}" target="_self">XAI Insights</a>
-            <a href="{url_fore}" target="_self">60-Month Forecasts</a>
+            <a href="{url_xai}" target="_self">Explainable AI</a>
         </div>
     </div>
     <div class="menu-item">
