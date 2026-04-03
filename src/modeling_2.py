@@ -22,22 +22,93 @@ def load_model_outputs():
     aeso_clean = load_clean_data()
     return run_modeling_pipeline(aeso_clean)
 
-def plot_prediction_view(train_df, test_df, results, target):
+def plot_prediction_view(train_df, test_df, results, target, g_type):
 
-    fig, ax = plt.subplots(figsize=(12, 5))
-
-    ax.plot(results["time"], results["actual"], label=f"Actual {target}", color="blue")
-    ax.plot(results["time"], results["pred"], label=f"Predicted {target}", color="orange", linestyle="--")    
-
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-    plt.subplots_adjust(
-        left=0.,
-        right=0.9,
-        top=0.95,
-        bottom=0.05
-    )       
+    fig = go.Figure()
+    
+    # Rendering a Line Graph Visualization per User Selection
+    if g_type == "Line":
+        
+        # Actual
+        fig.add_trace(go.Line(
+            x=results["time"],
+            y=results["actual"],
+            mode="lines",
+            name=f"Actual"
+        ))
+        
+        # Predicted
+        fig.add_trace(go.Line(
+            x=results["time"],
+            y=results["pred"],
+            mode="lines",
+            line=dict(dash="dash"),
+            line_color="white",
+            name=f"Predicted"
+        ))
+        
+        fig.update_layout(
+            title=f"Actual vs Predicted ({target})",
+            xaxis_title="Time",
+            yaxis_title=target,
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)"
+        )        
+    
+    # Rendering a Scatter Graph Visualization per User Selection 
+    elif g_type == "Scatter":
+        # Actual
+        fig.add_trace(go.Scatter(
+            x=results["time"],
+            y=results["actual"],
+            mode="markers",
+            name=f"Actual"
+        ))
+        
+        # Predicted
+        fig.add_trace(go.Scatter(
+            x=results["time"],
+            y=results["pred"],
+            mode="markers",
+            marker=dict(color="white"),
+            name=f"Predicted"
+        ))
+        
+        fig.update_layout(
+            title=f"Actual vs Predicted ({target})",
+            xaxis_title="Time",
+            yaxis_title=target,
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)"
+        )        
+    
+    # Rendering a Bar Graph Visualization per User Selection
+    elif g_type == "Bar":
+        # Actual
+        fig.add_trace(go.Bar(
+            x=results["time"],
+            y=results["actual"],
+            name=f"Actual"
+        ))
+        
+        # Predicted
+        fig.add_trace(go.Bar(
+            x=results["time"],
+            y=results["pred"],
+            name=f"Predicted"
+        ))
+        
+        fig.update_layout(
+            title=f"Actual vs Predicted ({target})",
+            xaxis_title="Time",
+            yaxis_title=target,
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)"
+        )
+        
     st.plotly_chart(fig, use_container_width=True)
+    
+
     
     
 
@@ -62,25 +133,25 @@ def plot_forecast_view(outputs, target):
     fig, ax = plt.subplots(figsize=(12, 5))
     
 
-    if selected_target == "solar_generation_per_capacity":
+    if target == "solar_generation_per_capacity":
         ax.plot(monthly["time"], monthly["solar_generation_per_capacity"], label="Historical")
         for scen in forecast_df["scenario"].unique():
             temp = forecast_df[forecast_df["scenario"] == scen]
             ax.plot(temp["time"], temp["forecast_generation_per_capacity"], linestyle="--", label=scen)
 
-    elif selected_target == "total_generation__solar":
+    elif target == "total_generation__solar":
         ax.plot(monthly["time"], monthly["total_generation__solar"], label="Historical")
         for scen in forecast_df["scenario"].unique():
             temp = forecast_df[forecast_df["scenario"] == scen]
             ax.plot(temp["time"], temp["forecast_total_generation__solar"], linestyle="--", label=scen)
 
-    elif selected_target == "solar_market_share":
+    elif target == "solar_market_share":
         ax.plot(monthly["time"], monthly["solar_market_share"], label="Historical")
         for scen in forecast_df["scenario"].unique():
             temp = forecast_df[forecast_df["scenario"] == scen]
             ax.plot(temp["time"], temp["forecast_solar_market_share"], linestyle="--", label=scen)
 
-    elif selected_target == "emissions_avoided":
+    elif target == "emissions_avoided":
         ax.plot(monthly["time"], monthly["emissions_avoided"], label="Historical")
         for scen in forecast_df["scenario"].unique():
             temp = forecast_df[forecast_df["scenario"] == scen]
