@@ -10,7 +10,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
+st.title("Machine Learning & Forecasting")
 
 import streamlit.components.v1 as components
 import matplotlib.pyplot as plt
@@ -431,10 +431,6 @@ import matplotlib.pyplot as plt
 from st_click_detector import click_detector
 
 
-
-st.title("Machine Learning & Forecasting")
-
-
 # ------------------------------- THIS SECTION IS TO SETUP & OPERATE THE GUI MENU LOGIC ----------------------------------- |
 
 
@@ -482,7 +478,7 @@ url_export = build_url_ml(dataflow="Export")
 # Graph Visualization URLs
 url_bar = build_url_ml(graph="Bar")
 url_line = build_url_ml(graph="Line")
-url_area = build_url_ml(graph="Area")
+url_box = build_url_ml(graph="Box")
 url_scatter = build_url_ml(graph="Scatter")
 
 # View Mode URLs
@@ -499,7 +495,7 @@ url_avoided = build_url_ml(y_test="avoided")
 
 
 # Global Variables to Use for State Session Updates & Calls
-vis_type = st.session_state.graph_type
+g_type = st.session_state.graph_type
 y_test = st.session_state.y_test
 dataflow = st.session_state.dataflow
 view_type = st.session_state.view_type
@@ -543,7 +539,7 @@ st.markdown(f"""
                 <div class="submenu">
                     <a href="{url_line}" target="_self">Line</a> 
                     <a href="{url_bar}" target="_self">Bar</a>
-                    <a href="{url_area}" target="_self">Area</a>
+                    <a href="{url_box}" target="_self">Box</a>
                     <a href="{url_scatter}" target="_self">Scatter</a>
                 </div>
             </div>
@@ -634,9 +630,6 @@ if y_test == "avoided":
     selected_target = "emissions_avoided"
     
 
-
-
-
 # ------------------------------------------------- ACTUAL PROGRAMMING SECTION WITH DATA AND ENGINE -----------------------------------------------
 
 
@@ -663,6 +656,7 @@ y_test_model, test_pred, results, test_df, model, X_train, train_df, metrics = T
 
 
 
+
 # RENDER LOGIC
 # ----------------------------
 
@@ -670,7 +664,6 @@ y_test_model, test_pred, results, test_df, model, X_train, train_df, metrics = T
 if view_type == "prediction":
     plot_prediction_view(train_df, test_df, results, selected_target)
     metrics = metrics[selected_target]
-
 
 elif view_type == "insights":
     st.title("Explainable AI")
@@ -759,24 +752,26 @@ elif view_type == "insights":
             
     
     with tab2:
-        st.header("Model Performance Metrics")
+        st.header("Model's Performance Metrics")
         st.divider()
         
-        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, selected_target, 2)
+        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, selected_target, 2, g_type)
         
     with tab3:
-        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, selected_target, 3)
+        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, selected_target, 3, g_type)
     
     with tab4:
-        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, selected_target, 4)
+        st.header("Model's Residual Analysis")
+        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, selected_target, 4, g_type)
     
     with tab5:
-        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, selected_target, 5)
+        st.header("Model's SHAP Analysis")
+        EvaluateModel3(y_test_model, test_pred, results, test_df, model, features, X_train, selected_target, 5, g_type)
         
         
 
 elif view_type == "forecast":
-    st.write("In Development -- WILL BE REMOVED")
+    st.write("Under Development -- Will be Removed")
     
     
 # Update the Taskbar Clock
