@@ -8,6 +8,7 @@ import base64
 
 import matplotlib.pyplot as plt
 import plotly.express as px
+import plotly.graph_objects as go
 import seaborn as sns
 
 import streamlit.components.v1 as stc
@@ -696,7 +697,7 @@ def TrainModel3(df_model, features, selected_target, monthly):
 
 
 # Evaluation Function for Model 3
-def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train, selected_target, page_tab):
+def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train, selected_target, page_tab, g_type):
     
     # evaluate main selected_target
     rmse = np.sqrt(mean_squared_error(y_test, test_pred)) 
@@ -821,8 +822,6 @@ def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train
         
         st.warning(f"Removing these would lose **{lost_importance*100:.1f}%** of the model's predictive power.")  
         
-        st.subheader("")
-        
         # Create the cumulative column
         feature_importance['c_sum'] = feature_importance['importance'].cumsum()
         
@@ -833,16 +832,140 @@ def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train
     
     elif page_tab == 4:
         
-        # Residual Analysis Plot
-        plt.figure(figsize=(12, 6))
-        plt.plot(results['time'], results['error'], marker='o', linestyle='-')
-        plt.axhline(0, color='red', linestyle='--', label='Zero Error')
-        plt.title(f'Residuals: Actual - {selected_target}')
-        plt.xlabel('Time')
-        plt.ylabel('Residual (Actual - Predicted)')
-        plt.legend()
-        plt.grid(True)
-        st.pyplot(plt.gcf())
+        res = y_test - test_pred
+        res_mean = res.mean()
+        res_max = res.max()
+        res_min = res.min()
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.write(f"**Average Residual:** {res_mean:.2f}")
+        
+        with col2:
+            st.write(f"**Max Residual:** {res_max:.2f}")
+        
+        with col3:
+            st.write(f"**Min Residual:** {res_min:.2f}")
+        
+        # Residual Analysis Plot Figure Created
+        fig = go.Figure()
+        
+        # These Branches Handle the Different Rendering Outputs for Visualizations Based Upon User's Selection 
+        
+        # Line Graph Selected
+        if g_type == "Line":
+            # Residual line
+            fig.add_trace(go.Scatter(
+                x=results['time'],
+                y=results['error'],
+                mode='lines+markers',
+                name='Residuals'
+            ))
+        
+            # Zero line
+            fig.add_hline(
+                y=0,
+                line_dash="dash",
+                line_color="white",
+                annotation_text="Zero Error",
+                annotation_position="top left",
+            )
+        
+            # Layout
+            fig.update_layout(
+                title=f"Residuals: {selected_target}",
+                xaxis_title="Time",
+                yaxis_title="Residual (Actual - Predicted)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)"            
+            )
+        
+        # Scatter Plot Selected
+        elif g_type == "Scatter":
+            # Residual Scatter
+            fig.add_trace(go.Scatter(
+                x=results['time'],
+                y=results['error'],
+                mode='markers',
+                name='Residuals'
+            ))
+        
+            # Zero line
+            fig.add_hline(
+                y=0,
+                line_dash="dash",
+                line_color="white",
+                annotation_text="Zero Error",
+                annotation_position="top left",
+            )
+        
+            # Layout
+            fig.update_layout(
+                title=f"Residuals: {selected_target}",
+                xaxis_title="Time",
+                yaxis_title="Residual (Actual - Predicted)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)"            
+            )            
+        
+        # Bar Graph Seleted
+        elif g_type == "Bar":
+            
+            # Residual Bar
+            fig.add_trace(go.Bar(
+                x=results['time'],
+                y=results['error'],
+                name='Residuals'
+            ))
+        
+            # Zero line
+            fig.add_hline(
+                y=0,
+                line_dash="dash",
+                line_color="white",
+                annotation_text="Zero Error",
+                annotation_position="top left",
+            )
+        
+            # Layout
+            fig.update_layout(
+                title=f"Residuals: {selected_target}",
+                xaxis_title="Time",
+                yaxis_title="Residual (Actual - Predicted)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)"            
+            )  
+        
+        # Box Plot Selected
+        elif g_type == "Box":
+            # Residual Box
+            fig.add_trace(go.Box(
+                x=results['time'],
+                y=results['error'],
+                name='Residuals'
+            ))
+        
+            # Zero line
+            fig.add_hline(
+                y=0,
+                line_dash="dash",
+                line_color="white",
+                annotation_text="Zero Error",
+                annotation_position="top left",
+            )
+        
+            # Layout
+            fig.update_layout(
+                title=f"Residuals: {selected_target}",
+                xaxis_title="Time",
+                yaxis_title="Residual (Actual - Predicted)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)"            
+            )              
+            
+        
+        st.plotly_chart(fig, use_container_width=True)
         
         # Distribution of Residuals
         plt.figure(figsize=(10, 6))
@@ -884,7 +1007,7 @@ def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train
                 shap_values = explainer(X_data_to_explain)
                 shap.plots.waterfall(shap_values[0], show=False)
         
-                st.write(f"\n--- SHAP Analysis for {month_name} {target_year} ---")
+                st.write(f"\n--- SHAP Analysis for {month_name} {target_year} | **Selected:** {selected_target} ---")
                 
                 # Plotting the SHAP waterfall plot for a single prediction
                 
