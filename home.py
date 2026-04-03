@@ -265,9 +265,9 @@ with col5:
 
 st.divider()
 st.header("Recent Dev Updates:")
-st.write("3/29/26 - Restructured M-Learning Page -- XAI Section Completed")
 st.write("3/30/26 - Fixed M-Learning Model Compatibility - Reduced Load to Cache Time")
 st.write("3/31/26 - Fixed Interactivity Selecting Different Output Types for M-Learning Page.")
 st.write("3/31/26 - Added Information to Model's Perf. Metrics, Feature importance & Residual Analysis")
 st.write("3/31/26 - Fixed Metrics Value 'Blow Up'")
 st.write("4/1/26 - Implemented RAG Chatbot (Course Instruction)")
+st.write("4/2/26 - Fixed - Selecting Time-Series Variable in Analytics Page")
