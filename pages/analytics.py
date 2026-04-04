@@ -1274,7 +1274,7 @@ else:
             
     with tab1:
                 
-        st.write("Insert KPI Cards Here...")
+        st.write("In Development...")
                 
                 
     with tab2:
