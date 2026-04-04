@@ -16,6 +16,7 @@ from st_click_detector import click_detector
 from helpers.data_load import load_data
 from helpers.data_funcs import *
 
+import pvlib
 
 
 
