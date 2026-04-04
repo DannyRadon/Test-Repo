@@ -263,11 +263,40 @@ with col5:
         st.switch_page("pages/chat.py")
 
 
-st.divider()
-st.header("Recent Dev Updates:")
-st.write("3/30/26 - Fixed M-Learning Model Compatibility - Reduced Load to Cache Time")
-st.write("3/31/26 - Fixed Interactivity Selecting Different Output Types for M-Learning Page.")
-st.write("3/31/26 - Added Information to Model's Perf. Metrics, Feature importance & Residual Analysis")
-st.write("3/31/26 - Fixed Metrics Value 'Blow Up'")
-st.write("4/1/26 - Implemented RAG Chatbot (Course Instruction)")
-st.write("4/2/26 - Fixed - Selecting Time-Series Variable in Analytics Page")
+tab1, tab2, tab3, tab4 = st.tabs(['Welcome!', 'About SPICE', 'About the Dashboard', 'Developer Updates'])
+
+with tab1:
+    st.header("Welcome to the SPICE Dashboard!")
+    st.write("To begin, click on one of the 'Page Navigation Icons' with the pictures.")
+    st.write("For more Information about this dashboard, SPICE, or recent development updates please select a tab.")
+
+with tab2:
+    st.header("About the SPICE Organization")
+    st.write("SPICE (Solar Powered Investment Cooperative of Edmonton) is a community-driven organization that enables individuals to invest in and also benefit from local solar energy projects.")
+    st.write("Their objective is to make renewable energy more accessible by allowing members to collectively fund solar installations on community and commercial buildings, generating both environmental and financial returns.")
+    st.write("By lowering the barrier to entry for solar investment, SPICE empowers everyday citizens, not just large corporations, to participate in the transition to clean energy.")
+    st.write("The cooperative model also fosters community engagement, local economic development, and increased awareness of sustainable energy solutions.")
+    st.write("Through its projects, SPICE contributes to reducing greenhouse gas emissions while providing members with transparent insights into energy generation and impact.")
+    
+with tab3:
+    st.header("About the SPICE Dashboard")
+    st.write("This dashboard was developed with a particular problem statement given to the project team.")
+    st.write("The given problem statement to the team is determining how solar generation is evolving within Alberta's electricity market, and how can community solar projects like SPICE leverage this shift to demonstrate measurable environmental benefits and long-term viability?")
+    st.write("As a result, this dashboard was developed with the intention to fully feature the user with the tools necessary for gaining useful insights from data analytics as well as observing detailed telemetry from Machine Learning Model output and performance.")
+    st.write("The design philosphy of this application is to transform the end-to-end nature of a dashboard into a fully customizable and dynamic system capable of meeting the user's demand or desire at any time.")
+    st.write("As time changes, so does data. We believe that a capable dashboard should not be locked into the perspective given to the user by the developer but instead the user should be free to update and change the way they are exploring the data as the information evolves over time.")
+
+with tab4: 
+    st.header("Recent Dev Updates:")
+    st.write("3/29/26 - Restructured M-Learning Page -- XAI Section Completed")
+    st.write("3/30/26 - Fixed - M-Learning Model Compatibility - Reduced Load to Cache Time")
+    st.write("3/31/26 - Fixed - Interactivity Selecting Different Output Types for M-Learning Page.")
+    st.write("3/31/26 - Added - Information to Model's Perf. Metrics, Feature importance & Residual Analysis")
+    st.write("3/31/26 - Fixed - Metrics Value 'Blow Up'")
+    st.write("4/1/26 - Added - RAG Chatbot (Course Instruction)")
+    st.write("4/2/26 - Fixed - Selecting Time-Series Variable in Analytics Page")
+    st.write("4/3/26 - Added - Data Overview & Methodology Page-Tabs to all Pages (not Sys Info)")
+    st.write("4/3/26 - Added - View Modes to Impacts Page (Descriptive & Graphical)")
+    st.write("4/3/26 - Added - Custom HTML KPI Metric Cards for Impacts Page (Descriptive View)")
+    st.write("4/3/26 - Added - PVLib Simulation Framework (Implementation Coming Soon)")
+    st.write("4/4/26 - Added - Tab Pages to Home Page adding SPICE Info, Dash Info, others.")
