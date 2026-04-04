@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import base64
 
+import pvlib
+
 import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
@@ -394,10 +396,14 @@ def build_treemap(df, site_name):
 
 
 
+
+
 @st.cache_data
 def load_data_aeso():
     aeso = pd.read_csv("data/aeso_pool_genv2.csv")
     return aeso
+
+
 
 
 @st.cache_data    
@@ -419,6 +425,11 @@ def aeso_daily_agg(df, datetime_col="DateTime"):
     return df_daily
 
 
+
+
+
+
+
 # CODE SECTION FOR UTILITIES / TOOLS -----------------------------------
 
 def calculator(width=350, height=450):
@@ -438,6 +449,7 @@ def calculator(width=350, height=450):
 
 
 # Data Cleaning Function for AESO
+@st.cache_data
 def clean_fe1(aeso):
     # CLEANINg
     aeso_clean = aeso.copy()
@@ -478,7 +490,13 @@ def clean_fe1(aeso):
 
 
 
+
+
+
+
+
 # Function for Feature Engineering Cleaned AESO Dataset
+@st.cache_data
 def fe(aeso_clean):
     
     EMISSIONS_FACTOR = 0.52
@@ -534,6 +552,10 @@ def fe(aeso_clean):
     )
 
     return monthly
+
+
+
+
 
 
 # Data Processing Function for Model 3
@@ -628,6 +650,10 @@ def ProcessDataM3(aeso_fe, selected_target):
 
 
 
+
+
+
+
 # Training Function for Model-3
 
 @st.cache_data
@@ -696,7 +722,11 @@ def TrainModel3(df_model, features, selected_target, monthly):
 
 
 
+
+
+
 # Evaluation Function for Model 3
+@st.cache_data
 def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train, selected_target, page_tab, g_type):
     
     # evaluate main selected_target
@@ -1016,4 +1046,112 @@ def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train
                 
             else:
                 print(f"\nNo data found for {month_name} {target_year} in the test set.")
+
+
+
+# ------ This Section Handles PVLib Simulation Code -----------------------------------------------
+
+
+def RunSimulation(df, cap, tilt, az, df_select):
+    
+    # This Branch Sets Up the Fixed Coordinates for Either Solar Site
+    if df_select == "New Jubilee":
         
+        visser_lat = 53.665690
+        visser_long = -113.289641  
+        
+        latitude = visser_lat
+        longitude = visser_long        
+        
+    else:
+        
+        bissell_lat = 53.6028
+        bissell_long = -113.4483
+        
+        latitude = bissell_lat
+        longitude = bissell_long
+        
+        """ Remember to put in the Bissell Coords here..."""
+        pass
+    
+    
+    df_project = df.copy()
+    df_project['time'] = pd.to_datetime(df_project['time']).dt.normalize() + pd.Timedelta(hours=12)
+    
+    # 2. Set it as the index (Crucial for PVLib!)
+    df_project = df_project.set_index('time')    
+    
+    # Loss Factor  
+    loss_factor = 0.75             
+    
+    
+    # Calculating Solar Position - Derived by PVLib's Astronomy Engine
+    solpos = pvlib.solarposition.get_solarposition(df_project.index, latitude, longitude) # Calculates Exact Position of Sun in Sky for Every Day
+    dni_extra = pvlib.irradiance.get_extra_radiation(df_project.index)                    # Calculates 'Extra-Terrestrial' Radiation (Energy hitting atmosphere before absorption)    
+    
+    
+    # Converting GHI to POA (Plane of Attack - Insolation Angles) | Calcuating Total Irradiation
+    poa = pvlib.irradiance.get_total_irradiance(
+        surface_tilt=tilt,           # Inputting Solar Generation System Panel Tilt
+        surface_azimuth=az,     # Inputting Solar Generation System Panel Azimuth (Direction)
+        solar_zenith=solpos['zenith'],    # Attaining Solar 'Zenith' - Angle of Sun Height Relative to Overhead
+        solar_azimuth=solpos['azimuth'],  # Attaining Solar 'Azimuth' - Like the Compass Direction of the Sun
+        dni=df_project['dni'],     # Inputting Direct Normal Irradiance Values from Open-Meteo
+        ghi=df_project['ghi'],     # Inputting Global Horizontal Irradiance Values from Open-Meteo
+        dhi=df_project['dhi'],     # Inputting Direct Horizontal Irradiance Values from Open-Meteo
+        dni_extra=dni_extra,
+        model='isotropic'
+    )
+    
+    # Extracting the Plane-of-Attack Values Calculated and Storing it in Joined Dataset
+    df_project['poa_global'] = poa['poa_global']
+    
+    # ------------------ THEORETICAL OUTPUT ------------------
+    df_project['theoretical_kwh'] = (
+        df_project['poa_global'] / 1000
+    ) * cap * loss_factor
+
+    return df_project
+
+
+
+# Evaluating & Projecting New Eco-Impact Projection Values
+def ProjectNewImpacts(df_project):
+    
+    # Constant Pool
+    tree_var = 0.022
+    car_var = 4.6
+    co2_factor = 0.54
+    home_var = 10
+    coal_var = 2.5
+    gas_var = 0.0023
+    
+    # Calcuting the Annual CO2 Saved & 10-Year & 25-Year
+    df_project['Annual CO2 (tonnes)'] = (df_project['theoretical_kwh'] * co2_factor).round()
+    df_project['10-Year CO2 (tonnes)'] =  (df_project['theoretical_kwh'] * co2_factor * 10 * 0.97).round()
+    df_project['25-Year CO2 (tonnes)'] = (df_project['theoretical_kwh'] * co2_factor * 25 * 0.94).round()
+    
+    # Calculating the Trees Saved
+    df_project['Trees Saved (annual)'] = (df_project['Annual CO2 (tonnes)'] / tree_var).round()
+    df_project['Trees Saved (10-year)'] = ((df_project['Annual CO2 (tonnes)'] / tree_var) * 10 * 0.97).round()
+    df_project['Trees Saved (25-year)'] = ((df_project['Annual CO2 (tonnes)'] / tree_var) * 25 * 0.94).round()
+    
+    
+    df_project['Cars Off Road (annual)'] = (df_project['Annual CO2 (tonnes)'] / car_var).round()
+    df_project['Cars Off Road (10-year)'] = ((df_project['Annual CO2 (tonnes)'] / car_var) * 10 * 0.97).round()
+    df_project['Cars Off Road (25-year)'] = ((df_project['Annual CO2 (tonnes)'] / car_var) * 25 * 0.94).round()
+    
+    df_project['Homes Powered (annual)'] = (df_project['theoretical_kwh'] / home_var).round()
+    df_project['Homes Powered (10-year)'] = ((df_project['theoretical_kwh'] / home_var) * 10 * 0.97).round()
+    df_project['Homes Powered (25-year)'] = ((df_project['theoretical_kwh'] / home_var) * 25 * 0.94).round()
+    
+    df_project['Coal Not Burned (tonnes/year)'] = ((df_project['theoretical_kwh'] * 0.9) / coal_var).round()
+    df_project['Coal Not Burned (10-year)'] = (((df_project['theoretical_kwh'] * 0.9) / coal_var) * 10 * 0.97).round()
+    df_project['Coal Not Burned (25-year)'] = (((df_project['theoretical_kwh'] * 0.9) / coal_var) * 25 * 0.94).round()
+    
+    df_project['Gasoline Saved (L/year)'] = (df_project['Annual CO2 (tonnes)'] / gas_var).round()
+    df_project['Gasoline Saved (10-year)'] = ((df_project['Annual CO2 (tonnes)'] / gas_var) * 10 * 0.97).round()
+    df_project['Gasoline Saved (25-year)'] = ((df_project['Annual CO2 (tonnes)'] / gas_var) * 25 * 0.94).round()    
+    
+    
+    return df_project
