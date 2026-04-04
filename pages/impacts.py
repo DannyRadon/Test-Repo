@@ -1156,7 +1156,106 @@ else:
         st.plotly_chart(fig)
     
     
-        st.divider()    
+        st.divider()   
+                    
+                    
+        with tab2:
+            st.header("PVLib Eco-Impact Simulator")
+            
+        with tab3:
+            
+            st.header("Methodology")
+            
+            tab1, tab2 = st.tabs(['Eco-Impacts', 'PVLib Simulation'])
+            
+            with tab1:
+                st.header("Methodology for Calculating Eco-Impacts")
+                
+                s_tab1, s_tab2, s_tab3, s_tab4, s_tab5, s_tab6 = st.tabs(['CO₂ Emission', 'Tree Absorbtion', 'Vehicle Emission', 'Home Consumption', 'Coal Emission', 'Gas Emission'])
+                
+                with s_tab1:
+                    st.subheader("Calculating CO₂ Emission Equivalence")
+                    st.write("The calculated values shown for 'CO₂ (Carbon Dioxide Gas) Saved' is derived from attaining the daily output values, summing them and converting them (kWh -> MWh). The value is then multiplied by the 'Alberta Grid CO₂ Emission Factor'.")
+                    st.write("The Alberta Grid CO₂ Emission Factor is 0.54 Tonnes CO₂ per MWh (Mega-Watt per Hour)")
+                    st.write("An example of this calculation is:")
+                    st.write("CO₂ Saved = Output (MWh) * CO₂ Emission Factor")
+                    st.write("CO₂ Saved = 3.41 * 0.54")
+                
+                with s_tab2:
+                    st.subheader("Calculating Tree Absorption Equivalence")
+                    st.write("The calculated values shown for 'Tree Absorb.' stems from sourced research courtesy of the EPA (Environmental Protection Agency). It is noted that a single mature tree can absorb up to 22Kg (Kilograms) of CO₂ in a year. Converting this metric (Kg -> Tonnes), this equates to 0.022 tonnes of CO₂ per year")
+                    st.write("The basis of the value for the calculation of tree absorption equivalencies are from the previously calculated CO₂ Emissions Saved values.")
+                    st.write("An example of this calculation is:")
+                    st.write("Trees Absorbed = CO₂ Emission Saved / 0.022")
+                    st.write("Trees Absorbed = 1.41 / 0.022")            
+                
+                with s_tab3:
+                    st.subheader("Calculating Vehicular Emission Equivalence")
+                    st.write("The calculated values shown for 'Cars Equiv.' is derived from information sourced from the EPA (Environmental Protection Agency). It is stated that an average gasoline-powered passenger vehicle can emit up to 4.6 tonnes of CO₂ per year.")
+                    st.write("The basis of value for this calculation is stemmed from the previous calculation of CO₂ Emissions Saved.")
+                    st.write("An example of this Calculation is:")
+                    st.write("Cars Emission Equivalency = CO₂ Emissions Saved / 4.6")
+                    st.write("Cars Emission Equivalency = 1.41 / 4.6")
+                
+                with s_tab4:
+                    st.subheader("Calculating Home Consumption Equivalence")
+                    st.write("The calculated values shown for 'Homes Gen.' (Homes Generated) is sourced from Natural Resources Canada. It is stated that the average Canadian home can use up to 10 MWh electricity per year.")
+                    st.write("The basis of value for this calculation is stemmed from the actual output production of the solar site.")
+                    st.write("An example of this calculation is:")
+                    st.write("Homes Generated = Output Production (MWh) / 10 MWh")
+                    st.write("Homes Generated = 3.41 / 10")
+                
+                with s_tab5:
+                    st.subheader("Calculating Coal Emission & Tonnage Equivalence")
+                    st.write("The calculated values shown for 'Coal Saved (T)' is attained from Natural Resources Canada. The 'Coal Emission Factor' is stated as 1 MWh from coal equates to approximately 0.9 tonnes of CO₂ and also 1 tonne of coal is equivalent to approximately 2.5 tonnes of CO₂ when burned.")
+                    st.write("The basis of value for this calculation is stemmed from the solar site's output production.")
+                    st.write("An example of this calculation is:")
+                    st.write("Coal Emission Saved = (Output Production * 0.9) / 2.5 ")
+                    st.write("Coal Emission Saved - (3.41 * 0.9) / 2.5")
+                
+                with s_tab6:
+                    st.subheader("Calculating Gasoline Emissions Equivalence")
+                    st.write("The calculated values shown for 'Gas Emm.' is sourced from the EPA (Environmental Protection Agency). It is stated that the 'Gasoline Emission Factor' is that 1 Gallon of Gasoline equates to approximately 8.9Kg (kilogram) of CO₂. Or, 1 Litre of Gasoline equates to approximately 2.3Kg of CO₂.")
+                    st.write("The basis of value for this calculation is stemmed from the previously calculated values of CO₂ Emissions Saved.")
+                    st.write("An example of this calculation is:")
+                    st.write("Gas Saved = CO₂ Emissions Saved (kg) / 2.3 ")
+                    st.write("Gas Saved = 1409 / 2.3")
+            
+            with tab2:
+                st.header("Simulating Eco-Impacts")
+                
+                s_tab1, s_tab2, s_tab3, s_tab4 = st.tabs(['Overview', 'Input Variables', 'Weather & Solar', 'Processing & Output'])
+                
+                with s_tab1:
+                    st.subheader("Overview of Simulating Eco-Impacts with PVLib")
+                    st.write("PVLib (Photo-Voltaic Library) for Python is a 'Solar Generation Simulator' powered by an Astronomy and Weather Engine utilizing a solar site's configuration of panel tilt, azimuth, location coordinates and system capacity along with solar irradiance data to generate theoretical solar output values based on the data fed into the engine.")
+                    st.write("In the context of 'Environmental Impacts', PVLib is used to simulate various solar site configuration scenarios for the locations given in the dataset (New Jubilee Greenhouse & Bissell Thrift Shop), with the intent to generate theoretical solar production values that in-turn can gauge the difference in environmental impacts based on upon the various changes or setups inputted by the user.")
+                    st.write("Upon simulating the theoretical production values the User is greated with comparison results of the new configuration's impact on environmental metrics in either a KPI descriptive form or in graphical visualization form as desired.")
+                    
+                with s_tab2:
+                    st.subheader("User Input Variables for Eco-Impact Simulation")
+                    st.write("The user only has to input **3-Variables** for input:")
+                    st.write("**PANEL TILT**")
+                    st.write("**PANEL AZIMUTH**")
+                    st.write("**SYSTEM CAPACITY**")
+                    st.divider()
+                    
+                    st.write("**Panel Tilt** -- The Tilt of the Site's Solar Panel Setup (e.g. - 30 Degrees)")
+                    st.write("**Panel Azimuth** -- The Direction the Site's Solar Panel's are facing (e,g. - 180 Degrees)")
+                    st.write("**System Capacity** -- The Capacity-Size of the Solar Site (e.g. - 30.7 kW)")
+                
+                with s_tab3:
+                    st.subheader("Weather & Solar Input Data for Eco-Impact Simulation")
+                    st.write("The Solar Irradiance Data used for this simulation is historical Weather & Solar Irradiance Data previously used for the imputation of missing, invalid & corrupted values in the datasets pertaining to New Jubilee Greenhouse & Bissell Thrift Shop.")
+                    st.write("No data for Weather & Solar Irradiance is inputted by the user. The PVLib Simulation Engine utilizes the Solar Irradiance components of: GHI (Global Horizontal Irradiance), DNI (Direct Normal Irradiance), and DHI (Direct Horizontal Irradiance), in order to simulate accurate sun angle positions through the daily as well as simulating cloud cover with the use of these three components.")
+                    st.write("These values were originally sourced from OpenMeteo using location coordinates and historical a Date-Time range that is the same as the dataset(s).")
+                    
+                with s_tab4:
+                    st.subheader("Processing & Outputs for Eco-Impact Simulation")
+                    st.write("The outputs generated are theoretical solar production values in kWh (kilo-Watts-hour) calculated from the given user inputs and the usage of historical Weather & Solar Irradiance data previously used in dataset imputation for solar output values.")
+                    st.write("This output is then applied to the new calculations of Environmental Impacts.")
+                    st.write("These new calculations of Eco-Impacts are then diplayed to the user in comparative form depending on 'View' mode (Descriptive KPI or Graphical Visualization). This comparative form is intented to showcase the difference in eco-impact with viewing results from the system's original configuration to the system's new theoretical configuration.")
+                    st.write("An example of this is a greater influence on Eco-Impacts when increasing the system's capacity by 2x or more.")        
 
 
 
