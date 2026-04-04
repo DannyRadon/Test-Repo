@@ -877,114 +877,76 @@ if df_select == "AESO":
     if view_mode == "Descriptive":
         df_copy = df.copy()
         
-        tab1, tab2 = st.tabs(['Overview', 'Methodology'])
         
-        with tab1:
-            
-            st.header(f"Descriptive Analytics for {df_select}")
-            st.dataframe(df_copy.describe())
-            st.divider()
+        st.header(f"Descriptive Analytics for {df_select}")
+        st.dataframe(df_copy.describe())
+        st.divider()
     
-            st.header(f"Data-Types for {df_select}")
-            st.dataframe(df_copy.dtypes)
+        st.header(f"Data-Types for {df_select}")
+        st.dataframe(df_copy.dtypes)
     
-            st.header(f"Missing & Invalid Values for {df_select}")
-            st.dataframe(df.isnull().sum())
+        st.header(f"Missing & Invalid Values for {df_select}")
+        st.dataframe(df.isnull().sum())
     
-            st.header(f"Correlation Matrix for {df_select}")
-            st.dataframe(df_copy.corr(numeric_only=True))
-            
-            
-        with tab2:
-            st.header("Methodology")
-            
-            s_tab1, s_tab2 = st.tabs(['Imputation', 'External Data'])
-            
-            with s_tab1:
-                st.subheader("Handling Missing Data, Invalid Data, or Corrupted Data:")
-                st.write("The method used to logically-impute the missing and/or corrupted data entries found in the New Jubilee Greenhouse & Bissell Thrift Shop Datasets was to utilize the Python library called 'PVLib'.")
-                st.write("PVLib (Photo-Voltaic Library) for Python is a 'Solar Generation Simulator' powered by an Astronomy and Weather Engine utilizing a solar site's configuration of panel tilt, azimuth, location coordinates and system capacity along with solar irradiance data to generate theoretical solar output values based on the data fed into the engine.")
-                st.write("As the given datasets did not include panel tilt or azimuth, the panel tilt was defaulted to be 30 Degrees as it is an 'Engineering-Safe' baseline for northern latitude operations of solar sites. Additionally, as the panel azimuth was also not included, its direction was observed by the usage of satellite imagery and a protractor.")
-                st.write("The imputation operations also involved the incorporation of Weather & Solar Irradiance Data sourced from OpenMeteo on the exact days in conjunction with the given datasets.")
-                st.write("PVLib is able to produce a theoretical output based on the Irradiance Data & Site Configuration Data. This value is the best theoretical output possibility and thus required a 'dampening' effect to bring it in-line with a realistic profile exhibited by the solar sites.")
-                st.write("This dampenening effect is applied as the form of a 'Performance Ratio' taken as a value from 'What Was Really Produced (Actual) / What Could Have Been Produced (Theoretical). This Performance Ratio (PR) was then applied to the values that were imputed for the missing, invalid or corrupted days. The performance ratio is essentially a rolling average of a couple days before and after the bad data entry.")
-                st.write("As a result, the general trend of the system's behavior is well-captured and safely-accurate to enact further Exploratory Analysis and Environmental Impact Calculations.")
-            
-            with s_tab2:
-                st.subheader("Using External Datasets:")
-                
-                ss_tab1, ss_tab2 = st.tabs(['AESO', 'OpenMeteo'])
-                
-                with ss_tab1:
-                    st.subheader("AESO - Alberta Electric System Operator")
-                    st.write("The usage of AESO data allows the incorporation of insights into 'real-time' hourly grid data with features such as total generation by type, system capacities per fuel, amongst others.")
-                    st.write("Additionally, the use of AESO data also gives data into pool prices (wholesale electricity prices) as well as the grip supply mixes between solar, coal, etc.")
-                    st.write("This provides market context for solar performance aligning Edmonton communities with the Alberta Market.")
-                    st.write("Finally, it provides seasonal and daily solar performance as well ass emissions data for the overall Alberta Energy Market which allows the insights into trends over the years.")
+        st.header(f"Correlation Matrix for {df_select}")
+        st.dataframe(df_copy.corr(numeric_only=True))
     
-                with ss_tab2:
-                    st.subheader("OpenMeteo - Open-Source Weather API")
-                    st.write("The usage of OpenMeteo's Weather Data allowed for the incorporation of the much needed historical weather records that would be utilized in the engine for PVLib as it simulated the theoretical solar output conditions for the missing and corrupted days residing within the New Jubilee & Bissell Thrift Shop datasets.")
-                    st.write("The obtained Weather Data also featured Solar Irradiance data by the hourly which was then aggregated to a daily average. The critical components that were required for the PVLib simulation to successfully enact its calculations were GNI, DNI, DHI components of Solar Irradiance.")
-                    st.write("Additionally, the incorporation of 'Wind Speed' also played a factor in the calculations of PVLib and was easily provided by the dataset obtained from OpenMeteo.")
-                    st.write("The OpenMeteo Dataset required the use of the Solar Site's Location Coordinates in Lat/Long format in order to achieve best & accurate historical weather records for the time-frame of the given datasets.")
-                    st.write("This sourced dataset used for imputation was also used for the Eco-Impacts Simulator page, using DNI, GHI, DHI, wind speed and temperature values.")
-                    
     else:
-        
-        tab1, tab2 = st.tabs(['Overview', 'Methodology'])
-        
-        with tab1:
+        try:
             
-            try:
-                if vis_type.lower() == "monthly_multi":
-                    st.plotly_chart(fig, use_container_width=True)
-                
-                else:
-                    plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
-            except NameError:
-                data_action = "Generation"
-                plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)            
+            if vis_type.lower() == "monthly_multi":
+                st.plotly_chart(fig, use_container_width=True)
             
-   
-            
-            
-        with tab2:
-            st.header("Methodology")
-            
-            s_tab1, s_tab2 = st.tabs(['Imputation', 'External Data'])
-            
-            with s_tab1:
-                st.subheader("Handling Missing Data, Invalid Data, or Corrupted Data:")
-                st.write("The method used to logically-impute the missing and/or corrupted data entries found in the New Jubilee Greenhouse & Bissell Thrift Shop Datasets was to utilize the Python library called 'PVLib'.")
-                st.write("PVLib (Photo-Voltaic Library) for Python is a 'Solar Generation Simulator' powered by an Astronomy and Weather Engine utilizing a solar site's configuration of panel tilt, azimuth, location coordinates and system capacity along with solar irradiance data to generate theoretical solar output values based on the data fed into the engine.")
-                st.write("As the given datasets did not include panel tilt or azimuth, the panel tilt was defaulted to be 30 Degrees as it is an 'Engineering-Safe' baseline for northern latitude operations of solar sites. Additionally, as the panel azimuth was also not included, its direction was observed by the usage of satellite imagery and a protractor.")
-                st.write("The imputation operations also involved the incorporation of Weather & Solar Irradiance Data sourced from OpenMeteo on the exact days in conjunction with the given datasets.")
-                st.write("PVLib is able to produce a theoretical output based on the Irradiance Data & Site Configuration Data. This value is the best theoretical output possibility and thus required a 'dampening' effect to bring it in-line with a realistic profile exhibited by the solar sites.")
-                st.write("This dampenening effect is applied as the form of a 'Performance Ratio' taken as a value from 'What Was Really Produced (Actual) / What Could Have Been Produced (Theoretical). This Performance Ratio (PR) was then applied to the values that were imputed for the missing, invalid or corrupted days. The performance ratio is essentially a rolling average of a couple days before and after the bad data entry.")
-                st.write("As a result, the general trend of the system's behavior is well-captured and safely-accurate to enact further Exploratory Analysis and Environmental Impact Calculations.")
-            
-            with s_tab2:
-                st.subheader("Using External Datasets:")
-                
-                ss_tab1, ss_tab2 = st.tabs(['AESO', 'OpenMeteo'])
-                
-                with ss_tab1:
-                    st.subheader("AESO - Alberta Electric System Operator")
-                    st.write("The usage of AESO data allows the incorporation of insights into 'real-time' hourly grid data with features such as total generation by type, system capacities per fuel, amongst others.")
-                    st.write("Additionally, the use of AESO data also gives data into pool prices (wholesale electricity prices) as well as the grip supply mixes between solar, coal, etc.")
-                    st.write("This provides market context for solar performance aligning Edmonton communities with the Alberta Market.")
-                    st.write("Finally, it provides seasonal and daily solar performance as well ass emissions data for the overall Alberta Energy Market which allows the insights into trends over the years.")
-    
-                with ss_tab2:
-                    st.subheader("OpenMeteo - Open-Source Weather API")
-                    st.write("The usage of OpenMeteo's Weather Data allowed for the incorporation of the much needed historical weather records that would be utilized in the engine for PVLib as it simulated the theoretical solar output conditions for the missing and corrupted days residing within the New Jubilee & Bissell Thrift Shop datasets.")
-                    st.write("The obtained Weather Data also featured Solar Irradiance data by the hourly which was then aggregated to a daily average. The critical components that were required for the PVLib simulation to successfully enact its calculations were GNI, DNI, DHI components of Solar Irradiance.")
-                    st.write("Additionally, the incorporation of 'Wind Speed' also played a factor in the calculations of PVLib and was easily provided by the dataset obtained from OpenMeteo.")
-                    st.write("The OpenMeteo Dataset required the use of the Solar Site's Location Coordinates in Lat/Long format in order to achieve best & accurate historical weather records for the time-frame of the given datasets.")
-                    st.write("This sourced dataset used for imputation was also used for the Eco-Impacts Simulator page, using DNI, GHI, DHI, wind speed and temperature values.")
+            else:
+                plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
+        except NameError:
+            data_action = "Generation"
+            plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
         
     
+    tab1, tab2 = st.tabs(['Overview', 'Methodology'])
+            
+    with tab1:
+                
+        st.write("Insert KPI Cards Here...")
+                
+                
+    with tab2:
+        st.header("Methodology")
+                
+        s_tab1, s_tab2 = st.tabs(['Imputation', 'External Data'])
+                
+        with s_tab1:
+            st.subheader("Handling Missing Data, Invalid Data, or Corrupted Data:")
+            st.write("The method used to logically-impute the missing and/or corrupted data entries found in the New Jubilee Greenhouse & Bissell Thrift Shop Datasets was to utilize the Python library called 'PVLib'.")
+            st.write("PVLib (Photo-Voltaic Library) for Python is a 'Solar Generation Simulator' powered by an Astronomy and Weather Engine utilizing a solar site's configuration of panel tilt, azimuth, location coordinates and system capacity along with solar irradiance data to generate theoretical solar output values based on the data fed into the engine.")
+            st.write("As the given datasets did not include panel tilt or azimuth, the panel tilt was defaulted to be 30 Degrees as it is an 'Engineering-Safe' baseline for northern latitude operations of solar sites. Additionally, as the panel azimuth was also not included, its direction was observed by the usage of satellite imagery and a protractor.")
+            st.write("The imputation operations also involved the incorporation of Weather & Solar Irradiance Data sourced from OpenMeteo on the exact days in conjunction with the given datasets.")
+            st.write("PVLib is able to produce a theoretical output based on the Irradiance Data & Site Configuration Data. This value is the best theoretical output possibility and thus required a 'dampening' effect to bring it in-line with a realistic profile exhibited by the solar sites.")
+            st.write("This dampenening effect is applied as the form of a 'Performance Ratio' taken as a value from 'What Was Really Produced (Actual) / What Could Have Been Produced (Theoretical). This Performance Ratio (PR) was then applied to the values that were imputed for the missing, invalid or corrupted days. The performance ratio is essentially a rolling average of a couple days before and after the bad data entry.")
+            st.write("As a result, the general trend of the system's behavior is well-captured and safely-accurate to enact further Exploratory Analysis and Environmental Impact Calculations.")
+                
+        with s_tab2:
+            st.subheader("Using External Datasets:")
+                    
+            ss_tab1, ss_tab2 = st.tabs(['AESO', 'OpenMeteo'])
+                    
+            with ss_tab1:
+                st.subheader("AESO - Alberta Electric System Operator")
+                st.write("The usage of AESO data allows the incorporation of insights into 'real-time' hourly grid data with features such as total generation by type, system capacities per fuel, amongst others.")
+                st.write("Additionally, the use of AESO data also gives data into pool prices (wholesale electricity prices) as well as the grip supply mixes between solar, coal, etc.")
+                st.write("This provides market context for solar performance aligning Edmonton communities with the Alberta Market.")
+                st.write("Finally, it provides seasonal and daily solar performance as well ass emissions data for the overall Alberta Energy Market which allows the insights into trends over the years.")
+        
+            with ss_tab2:
+                st.subheader("OpenMeteo - Open-Source Weather API")
+                st.write("The usage of OpenMeteo's Weather Data allowed for the incorporation of the much needed historical weather records that would be utilized in the engine for PVLib as it simulated the theoretical solar output conditions for the missing and corrupted days residing within the New Jubilee & Bissell Thrift Shop datasets.")
+                st.write("The obtained Weather Data also featured Solar Irradiance data by the hourly which was then aggregated to a daily average. The critical components that were required for the PVLib simulation to successfully enact its calculations were GNI, DNI, DHI components of Solar Irradiance.")
+                st.write("Additionally, the incorporation of 'Wind Speed' also played a factor in the calculations of PVLib and was easily provided by the dataset obtained from OpenMeteo.")
+                st.write("The OpenMeteo Dataset required the use of the Solar Site's Location Coordinates in Lat/Long format in order to achieve best & accurate historical weather records for the time-frame of the given datasets.")
+                st.write("This sourced dataset used for imputation was also used for the Eco-Impacts Simulator page, using DNI, GHI, DHI, wind speed and temperature values.")
+                        
+        
     components.html("""
     <script>
         function updateClock() {
@@ -1284,115 +1246,71 @@ else:
     if view_mode == "Descriptive":
         df_copy = df.copy()
         
-        tab1, tab2 = st.tabs(['Overview', 'Methodology'])
-        
-        with tab1:
-            
-            st.header(f"Descriptive Analytics for {df_select}")
-            st.dataframe(df_copy.describe())
-            st.divider()
+        st.header("Descriptive Analytics")
+        st.dataframe(df_copy.describe())
+        st.divider()
     
-            st.header(f"Data-Types for {df_select}")
-            st.dataframe(df_copy.dtypes)
+        st.header("Data-Types")
+        st.dataframe(df_copy.dtypes)
     
-            st.header(f"Missing & Invalid Values for {df_select}")
-            st.dataframe(df.isnull().sum())
+        st.header("Missing & Invalid Values")
+        st.dataframe(df.isnull().sum())
     
-            st.header(f"Correlation Matrix for {df_select}")
-            st.dataframe(df_copy.corr(numeric_only=True))
-            
-            
-        with tab2:
-            st.header("Methodology")
-            
-            s_tab1, s_tab2 = st.tabs(['Imputation', 'External Data'])
-            
-            with s_tab1:
-                st.subheader("Handling Missing Data, Invalid Data, or Corrupted Data:")
-                st.write("The method used to logically-impute the missing and/or corrupted data entries found in the New Jubilee Greenhouse & Bissell Thrift Shop Datasets was to utilize the Python library called 'PVLib'.")
-                st.write("PVLib (Photo-Voltaic Library) for Python is a 'Solar Generation Simulator' powered by an Astronomy and Weather Engine utilizing a solar site's configuration of panel tilt, azimuth, location coordinates and system capacity along with solar irradiance data to generate theoretical solar output values based on the data fed into the engine.")
-                st.write("As the given datasets did not include panel tilt or azimuth, the panel tilt was defaulted to be 30 Degrees as it is an 'Engineering-Safe' baseline for northern latitude operations of solar sites. Additionally, as the panel azimuth was also not included, its direction was observed by the usage of satellite imagery and a protractor.")
-                st.write("The imputation operations also involved the incorporation of Weather & Solar Irradiance Data sourced from OpenMeteo on the exact days in conjunction with the given datasets.")
-                st.write("PVLib is able to produce a theoretical output based on the Irradiance Data & Site Configuration Data. This value is the best theoretical output possibility and thus required a 'dampening' effect to bring it in-line with a realistic profile exhibited by the solar sites.")
-                st.write("This dampenening effect is applied as the form of a 'Performance Ratio' taken as a value from 'What Was Really Produced (Actual) / What Could Have Been Produced (Theoretical). This Performance Ratio (PR) was then applied to the values that were imputed for the missing, invalid or corrupted days. The performance ratio is essentially a rolling average of a couple days before and after the bad data entry.")
-                st.write("As a result, the general trend of the system's behavior is well-captured and safely-accurate to enact further Exploratory Analysis and Environmental Impact Calculations.")
-            
-            with s_tab2:
-                st.subheader("Using External Datasets:")
-                
-                ss_tab1, ss_tab2 = st.tabs(['AESO', 'OpenMeteo'])
-                
-                with ss_tab1:
-                    st.subheader("AESO - Alberta Electric System Operator")
-                    st.write("The usage of AESO data allows the incorporation of insights into 'real-time' hourly grid data with features such as total generation by type, system capacities per fuel, amongst others.")
-                    st.write("Additionally, the use of AESO data also gives data into pool prices (wholesale electricity prices) as well as the grip supply mixes between solar, coal, etc.")
-                    st.write("This provides market context for solar performance aligning Edmonton communities with the Alberta Market.")
-                    st.write("Finally, it provides seasonal and daily solar performance as well ass emissions data for the overall Alberta Energy Market which allows the insights into trends over the years.")
+        st.header("Correlation Matrix")
+        st.dataframe(df_copy.corr(numeric_only=True))
     
-                with ss_tab2:
-                    st.subheader("OpenMeteo - Open-Source Weather API")
-                    st.write("The usage of OpenMeteo's Weather Data allowed for the incorporation of the much needed historical weather records that would be utilized in the engine for PVLib as it simulated the theoretical solar output conditions for the missing and corrupted days residing within the New Jubilee & Bissell Thrift Shop datasets.")
-                    st.write("The obtained Weather Data also featured Solar Irradiance data by the hourly which was then aggregated to a daily average. The critical components that were required for the PVLib simulation to successfully enact its calculations were GNI, DNI, DHI components of Solar Irradiance.")
-                    st.write("Additionally, the incorporation of 'Wind Speed' also played a factor in the calculations of PVLib and was easily provided by the dataset obtained from OpenMeteo.")
-                    st.write("The OpenMeteo Dataset required the use of the Solar Site's Location Coordinates in Lat/Long format in order to achieve best & accurate historical weather records for the time-frame of the given datasets.")
-                    st.write("This sourced dataset used for imputation was also used for the Eco-Impacts Simulator page, using DNI, GHI, DHI, wind speed and temperature values.")
-                    
     else:
+        try:
+            plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
+        except NameError:
+            data_action = "Generation"
+            plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
         
-        tab1, tab2 = st.tabs(['Overview', 'Methodology'])
-        
-        with tab1:
-            
-            try:
-                if vis_type.lower() == "monthly_multi":
-                    st.plotly_chart(fig, use_container_width=True)
-                
-                else:
-                    plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
-            except NameError:
-                data_action = "Generation"
-                plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)            
-            
-   
-            
-            
-        with tab2:
-            st.header("Methodology")
-            
-            s_tab1, s_tab2 = st.tabs(['Imputation', 'External Data'])
-            
-            with s_tab1:
-                st.subheader("Handling Missing Data, Invalid Data, or Corrupted Data:")
-                st.write("The method used to logically-impute the missing and/or corrupted data entries found in the New Jubilee Greenhouse & Bissell Thrift Shop Datasets was to utilize the Python library called 'PVLib'.")
-                st.write("PVLib (Photo-Voltaic Library) for Python is a 'Solar Generation Simulator' powered by an Astronomy and Weather Engine utilizing a solar site's configuration of panel tilt, azimuth, location coordinates and system capacity along with solar irradiance data to generate theoretical solar output values based on the data fed into the engine.")
-                st.write("As the given datasets did not include panel tilt or azimuth, the panel tilt was defaulted to be 30 Degrees as it is an 'Engineering-Safe' baseline for northern latitude operations of solar sites. Additionally, as the panel azimuth was also not included, its direction was observed by the usage of satellite imagery and a protractor.")
-                st.write("The imputation operations also involved the incorporation of Weather & Solar Irradiance Data sourced from OpenMeteo on the exact days in conjunction with the given datasets.")
-                st.write("PVLib is able to produce a theoretical output based on the Irradiance Data & Site Configuration Data. This value is the best theoretical output possibility and thus required a 'dampening' effect to bring it in-line with a realistic profile exhibited by the solar sites.")
-                st.write("This dampenening effect is applied as the form of a 'Performance Ratio' taken as a value from 'What Was Really Produced (Actual) / What Could Have Been Produced (Theoretical). This Performance Ratio (PR) was then applied to the values that were imputed for the missing, invalid or corrupted days. The performance ratio is essentially a rolling average of a couple days before and after the bad data entry.")
-                st.write("As a result, the general trend of the system's behavior is well-captured and safely-accurate to enact further Exploratory Analysis and Environmental Impact Calculations.")
-            
-            with s_tab2:
-                st.subheader("Using External Datasets:")
-                
-                ss_tab1, ss_tab2 = st.tabs(['AESO', 'OpenMeteo'])
-                
-                with ss_tab1:
-                    st.subheader("AESO - Alberta Electric System Operator")
-                    st.write("The usage of AESO data allows the incorporation of insights into 'real-time' hourly grid data with features such as total generation by type, system capacities per fuel, amongst others.")
-                    st.write("Additionally, the use of AESO data also gives data into pool prices (wholesale electricity prices) as well as the grip supply mixes between solar, coal, etc.")
-                    st.write("This provides market context for solar performance aligning Edmonton communities with the Alberta Market.")
-                    st.write("Finally, it provides seasonal and daily solar performance as well ass emissions data for the overall Alberta Energy Market which allows the insights into trends over the years.")
-    
-                with ss_tab2:
-                    st.subheader("OpenMeteo - Open-Source Weather API")
-                    st.write("The usage of OpenMeteo's Weather Data allowed for the incorporation of the much needed historical weather records that would be utilized in the engine for PVLib as it simulated the theoretical solar output conditions for the missing and corrupted days residing within the New Jubilee & Bissell Thrift Shop datasets.")
-                    st.write("The obtained Weather Data also featured Solar Irradiance data by the hourly which was then aggregated to a daily average. The critical components that were required for the PVLib simulation to successfully enact its calculations were GNI, DNI, DHI components of Solar Irradiance.")
-                    st.write("Additionally, the incorporation of 'Wind Speed' also played a factor in the calculations of PVLib and was easily provided by the dataset obtained from OpenMeteo.")
-                    st.write("The OpenMeteo Dataset required the use of the Solar Site's Location Coordinates in Lat/Long format in order to achieve best & accurate historical weather records for the time-frame of the given datasets.")
-                    st.write("This sourced dataset used for imputation was also used for the Eco-Impacts Simulator page, using DNI, GHI, DHI, wind speed and temperature values.")
-      
     
     df = df_visser if st.session_state.dataset == "New Jubilee" else df_bissell
+    
+    
+    tab1, tab2 = st.tabs(['Overview', 'Methodology'])
+            
+    with tab1:
+                
+        st.write("Insert KPI Cards Here...")
+                
+                
+    with tab2:
+        st.header("Methodology")
+                
+        s_tab1, s_tab2 = st.tabs(['Imputation', 'External Data'])
+                
+        with s_tab1:
+            st.subheader("Handling Missing Data, Invalid Data, or Corrupted Data:")
+            st.write("The method used to logically-impute the missing and/or corrupted data entries found in the New Jubilee Greenhouse & Bissell Thrift Shop Datasets was to utilize the Python library called 'PVLib'.")
+            st.write("PVLib (Photo-Voltaic Library) for Python is a 'Solar Generation Simulator' powered by an Astronomy and Weather Engine utilizing a solar site's configuration of panel tilt, azimuth, location coordinates and system capacity along with solar irradiance data to generate theoretical solar output values based on the data fed into the engine.")
+            st.write("As the given datasets did not include panel tilt or azimuth, the panel tilt was defaulted to be 30 Degrees as it is an 'Engineering-Safe' baseline for northern latitude operations of solar sites. Additionally, as the panel azimuth was also not included, its direction was observed by the usage of satellite imagery and a protractor.")
+            st.write("The imputation operations also involved the incorporation of Weather & Solar Irradiance Data sourced from OpenMeteo on the exact days in conjunction with the given datasets.")
+            st.write("PVLib is able to produce a theoretical output based on the Irradiance Data & Site Configuration Data. This value is the best theoretical output possibility and thus required a 'dampening' effect to bring it in-line with a realistic profile exhibited by the solar sites.")
+            st.write("This dampenening effect is applied as the form of a 'Performance Ratio' taken as a value from 'What Was Really Produced (Actual) / What Could Have Been Produced (Theoretical). This Performance Ratio (PR) was then applied to the values that were imputed for the missing, invalid or corrupted days. The performance ratio is essentially a rolling average of a couple days before and after the bad data entry.")
+            st.write("As a result, the general trend of the system's behavior is well-captured and safely-accurate to enact further Exploratory Analysis and Environmental Impact Calculations.")
+                
+        with s_tab2:
+            st.subheader("Using External Datasets:")
+                    
+            ss_tab1, ss_tab2 = st.tabs(['AESO', 'OpenMeteo'])
+                    
+            with ss_tab1:
+                st.subheader("AESO - Alberta Electric System Operator")
+                st.write("The usage of AESO data allows the incorporation of insights into 'real-time' hourly grid data with features such as total generation by type, system capacities per fuel, amongst others.")
+                st.write("Additionally, the use of AESO data also gives data into pool prices (wholesale electricity prices) as well as the grip supply mixes between solar, coal, etc.")
+                st.write("This provides market context for solar performance aligning Edmonton communities with the Alberta Market.")
+                st.write("Finally, it provides seasonal and daily solar performance as well ass emissions data for the overall Alberta Energy Market which allows the insights into trends over the years.")
+        
+            with ss_tab2:
+                st.subheader("OpenMeteo - Open-Source Weather API")
+                st.write("The usage of OpenMeteo's Weather Data allowed for the incorporation of the much needed historical weather records that would be utilized in the engine for PVLib as it simulated the theoretical solar output conditions for the missing and corrupted days residing within the New Jubilee & Bissell Thrift Shop datasets.")
+                st.write("The obtained Weather Data also featured Solar Irradiance data by the hourly which was then aggregated to a daily average. The critical components that were required for the PVLib simulation to successfully enact its calculations were GNI, DNI, DHI components of Solar Irradiance.")
+                st.write("Additionally, the incorporation of 'Wind Speed' also played a factor in the calculations of PVLib and was easily provided by the dataset obtained from OpenMeteo.")
+                st.write("The OpenMeteo Dataset required the use of the Solar Site's Location Coordinates in Lat/Long format in order to achieve best & accurate historical weather records for the time-frame of the given datasets.")
+                st.write("This sourced dataset used for imputation was also used for the Eco-Impacts Simulator page, using DNI, GHI, DHI, wind speed and temperature values.")    
     
     components.html("""
     <script>
