@@ -726,7 +726,7 @@ def TrainModel3(df_model, features, selected_target, monthly):
 
 
 # Evaluation Function for Model 3
-@st.cache_data
+
 def EvaluateModel3(y_test, test_pred, results, test_df, model, features, X_train, selected_target, page_tab, g_type):
     
     # evaluate main selected_target
