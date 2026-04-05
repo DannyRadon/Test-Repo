@@ -957,6 +957,38 @@ html_card_bissize = f"""
     </div>
 
 """
+st.markdown("""
+<style>
+
+/* ONLY form submit button */
+div[data-testid="stFormSubmitButton"] > button {
+
+    background: linear-gradient(
+        180deg,
+        #A4C76E 0%,
+        #7FAE42 50%,
+        #38c401 100%
+    ) !important;
+
+    color: white !important;
+    border: 2px solid white !important;
+    border-radius: 10px !important;
+
+    padding: 10px 20px !important;
+    font-weight: bold !important;
+
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.3) !important;
+}
+
+/* Hover */
+div[data-testid="stFormSubmitButton"] > button:hover {
+    transform: scale(1.03);
+    transition: 0.2s;
+    box-shadow: 0px 0px 12px rgba(56,196,1,0.6);
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 if view_mode == "Descriptive":
     
@@ -1012,9 +1044,37 @@ if view_mode == "Descriptive":
                 
                 
     with tab2:
-        st.header("PVLib Eco-Impact Simulator")
         
+            st.header("PVLib Eco-Impact Simulator")
+            
+            # Quick Default Value Initializing for Size Selection
+            if df_select == "New Jubilee":
+                og_size = 14.2
+            else:
+                og_size = 30.7
+                
+            # User Inputted System Configuration Here
+            with st.form("simulation_form"):
+                st.write("### Solar Site System Configuration")
+                
+                # User Inputs
+                cap = st.number_input("System Capacity (kW)", min_value=1.0, value=og_size)
+                tilt = st.slider("Panel Tilt (Degrees)", 0, 90, 30)
+                az = st.slider("Panel Azimuth (Degrees)", 0, 360, 180)
+                
+                # Generate Simulation Button
+                submit_button = st.form_submit_button("Run Simulation")
         
+            
+            if submit_button:
+                    
+                df_project = RunSimulation(df, cap, tilt, az, df_select)
+                df_project = ProjectNewImpacts(df_project)
+                
+                # Renders the Table for Descriptive Mode
+                render_comparison_table(df, df_project, og_size, cap, tilt, az)          
+                
+                    
         
         
     with tab3:
@@ -1162,6 +1222,34 @@ else:
         with tab2:
             st.header("PVLib Eco-Impact Simulator")
             
+            # Quick Default Value Initializing for Size Selection
+            if df_select == "New Jubilee":
+                og_size = 14.2
+            else:
+                og_size = 30.7
+                
+            # User Inputted System Configuration Here
+            with st.form("simulation_form"):
+                st.write("### Solar Site System Configuration")
+                
+                # User Inputs
+                cap = st.number_input("System Capacity (kW)", min_value=1.0, value=og_size)
+                tilt = st.slider("Panel Tilt (Degrees)", 0, 90, 30)
+                az = st.slider("Panel Azimuth (Degrees)", 0, 360, 180)
+                
+                # Generate Simulation Button
+                submit_button = st.form_submit_button("Run Simulation")
+        
+            
+            if submit_button:
+                    
+                df_project = RunSimulation(df, cap, tilt, az, df_select)
+                df_project = ProjectNewImpacts(df_project)
+                
+                render_graphic_comparison(df, df_project, og_size, cap, tilt, az)
+            
+    
+        
         with tab3:
             
             st.header("Methodology")
