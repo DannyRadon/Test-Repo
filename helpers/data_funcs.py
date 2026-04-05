@@ -1127,31 +1127,168 @@ def ProjectNewImpacts(df_project):
     gas_var = 0.0023
     
     # Calcuting the Annual CO2 Saved & 10-Year & 25-Year
-    df_project['Annual CO2 (tonnes)'] = (df_project['theoretical_kwh'] * co2_factor).round()
-    df_project['10-Year CO2 (tonnes)'] =  (df_project['theoretical_kwh'] * co2_factor * 10 * 0.97).round()
-    df_project['25-Year CO2 (tonnes)'] = (df_project['theoretical_kwh'] * co2_factor * 25 * 0.94).round()
+    df_project['co2_avoided'] = (df_project['theoretical_kwh'] * co2_factor)
+    df_project['co2_avoided_10'] =  (df_project['theoretical_kwh'] * co2_factor * 10 * 0.97)
+    df_project['co2_avoided_25'] = (df_project['theoretical_kwh'] * co2_factor * 25 * 0.94)
     
     # Calculating the Trees Saved
-    df_project['Trees Saved (annual)'] = (df_project['Annual CO2 (tonnes)'] / tree_var).round()
-    df_project['Trees Saved (10-year)'] = ((df_project['Annual CO2 (tonnes)'] / tree_var) * 10 * 0.97).round()
-    df_project['Trees Saved (25-year)'] = ((df_project['Annual CO2 (tonnes)'] / tree_var) * 25 * 0.94).round()
+    df_project['trees_saved'] = (df_project['co2_avoided'] / tree_var)
+    df_project['trees_saved_10'] = ((df_project['co2_avoided'] / tree_var) * 10 * 0.97)
+    df_project['trees_saved_25'] = ((df_project['co2_avoided'] / tree_var) * 25 * 0.94)
     
     
-    df_project['Cars Off Road (annual)'] = (df_project['Annual CO2 (tonnes)'] / car_var).round()
-    df_project['Cars Off Road (10-year)'] = ((df_project['Annual CO2 (tonnes)'] / car_var) * 10 * 0.97).round()
-    df_project['Cars Off Road (25-year)'] = ((df_project['Annual CO2 (tonnes)'] / car_var) * 25 * 0.94).round()
+    df_project['cars_offroad'] = (df_project['co2_avoided'] / car_var)
+    df_project['cars_offroad_10'] = ((df_project['co2_avoided'] / car_var) * 10 * 0.97)
+    df_project['cars_offroad_25'] = ((df_project['co2_avoided'] / car_var) * 25 * 0.94)
     
-    df_project['Homes Powered (annual)'] = (df_project['theoretical_kwh'] / home_var).round()
-    df_project['Homes Powered (10-year)'] = ((df_project['theoretical_kwh'] / home_var) * 10 * 0.97).round()
-    df_project['Homes Powered (25-year)'] = ((df_project['theoretical_kwh'] / home_var) * 25 * 0.94).round()
+    df_project['homes_powered'] = (df_project['theoretical_kwh'] / home_var)
+    df_project['homes_powered_10'] = ((df_project['theoretical_kwh'] / home_var) * 10 * 0.97)
+    df_project['homes_powered_25'] = ((df_project['theoretical_kwh'] / home_var) * 25 * 0.94)
     
-    df_project['Coal Not Burned (tonnes/year)'] = ((df_project['theoretical_kwh'] * 0.9) / coal_var).round()
-    df_project['Coal Not Burned (10-year)'] = (((df_project['theoretical_kwh'] * 0.9) / coal_var) * 10 * 0.97).round()
-    df_project['Coal Not Burned (25-year)'] = (((df_project['theoretical_kwh'] * 0.9) / coal_var) * 25 * 0.94).round()
+    df_project['coal_tonnage_avoided'] = ((df_project['theoretical_kwh'] * 0.9) / coal_var)
+    df_project['coal_tonnage_avoided_10'] = (((df_project['theoretical_kwh'] * 0.9) / coal_var) * 10 * 0.97)
+    df_project['coal_tonnage_avoided_25'] = (((df_project['theoretical_kwh'] * 0.9) / coal_var) * 25 * 0.94)
     
-    df_project['Gasoline Saved (L/year)'] = (df_project['Annual CO2 (tonnes)'] / gas_var).round()
-    df_project['Gasoline Saved (10-year)'] = ((df_project['Annual CO2 (tonnes)'] / gas_var) * 10 * 0.97).round()
-    df_project['Gasoline Saved (25-year)'] = ((df_project['Annual CO2 (tonnes)'] / gas_var) * 25 * 0.94).round()    
+    df_project['gas_saved'] = (df_project['co2_avoided'] / gas_var)
+    df_project['gas_saved_10'] = ((df_project['co2_avoided'] / gas_var) * 10 * 0.97)
+    df_project['gas_saved_25'] = ((df_project['co2_avoided'] / gas_var) * 25 * 0.94)    
     
     
     return df_project
+
+
+
+
+def render_comparison_table(df, df_project, og_size, capacity, tilt, azimuth):
+    
+    # ---------- ORIGINAL VALUES ----------
+    orig = {
+        "Capacity (kW)": og_size,
+        "Tilt (°)": 30,  # your assumed default
+        "Azimuth (°)": 180,  # your assumed default
+        "Output (kWh)": df['theoretical_kwh'].sum().round(2),
+        "CO₂ Saved (t)": df['co2_avoided'].sum().round(2),
+        "Trees Saved": df['trees_saved'].sum().round(),
+        "Homes Powered": df['homes_powered'].sum().round(2),
+        "Cars Off Road": df['cars_offroad'].sum().round(2)
+    }
+
+    # ---------- SIMULATED VALUES ----------
+    sim = {
+        "Capacity (kW)": capacity,
+        "Tilt (°)": tilt,
+        "Azimuth (°)": azimuth,
+        "Output (kWh)": df_project['theoretical_kwh'].sum().round(2),
+        "CO₂ Saved (t)": df_project['co2_avoided'].sum().round(2),
+        "Trees Saved": df_project['trees_saved'].sum().round(),
+        "Homes Powered": df_project['homes_powered'].sum().round(2),
+        "Cars Off Road": df_project['cars_offroad'].sum().round(2)
+    }
+
+    # ---------- BUILD ROWS ----------
+    rows_html = ""
+
+    for key in orig.keys():
+        o = orig[key]
+        s = sim[key]
+
+        # Handle numeric vs non-numeric safely
+        try:
+            diff = s - o
+            pct = (diff / o * 100) if o != 0 else 0
+
+            # Color logic
+            if diff > 0:
+                color = "#00ff73"   # green
+                sign = "+"
+            elif diff < 0:
+                color = "#FF4B4B"   # red
+                sign = ""
+            else:
+                color = "#FFFFFF"
+                sign = ""
+
+            diff_display = f"{sign}{diff:.2f} ({sign}{pct:.1f}%)"
+        except:
+            color = "#FFFFFF"
+            diff_display = "—"
+
+        rows_html += f"""
+        <tr>
+            <td>{key}</td>
+            <td>{o}</td>
+            <td>{s}</td>
+            <td style="color:{color}; font-weight:bold;">{diff_display}</td>
+        </tr>
+        """
+
+    # ---------- FINAL HTML ----------
+    html = f"""
+    <div style="
+        background-color: rgba(0,0,0,0);
+        border: 2px solid #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 15px;
+    ">
+        <table style="
+            width:100%;
+            color:white;
+            border-collapse: collapse;
+            text-align:center;
+        ">
+            <thead>
+                <tr style="border-bottom:1px solid white;">
+                    <th style="padding:10px;">Metric</th>
+                    <th>Original</th>
+                    <th>Simulated</th>
+                    <th>Difference</th>
+                </tr>
+            </thead>
+            <tbody>
+    {rows_html}
+            </tbody>
+    
+        </table>
+    </div>
+    """
+
+    st.components.v1.html(html, height=400, scrolling=False)
+    
+    
+def render_graphic_comparison(df, df_project, og_size, cap, tilt, az):
+    
+    impact_cols = [
+        "co2_avoided", "cars_offroad",
+        "homes_powered", "coal_tonnage_avoided", 
+        "coal_emission_avoided"
+    ]
+
+    og_totals = df[impact_cols].sum()
+    sim_totals = df_project[impact_cols].sum()
+
+    df_compare = pd.DataFrame({
+        "Metric": impact_cols,
+        "Original": og_totals.values,
+        "Simulated": sim_totals.values
+    })
+
+    fig = px.bar(
+    df_compare,
+    x="Metric",
+    y=["Original", "Simulated"],
+    barmode="group",
+    color_discrete_map={
+        "Original": "#0058EE",   # green
+        "Simulated": "#A5BEE0"    # blue
+        }   
+    )
+
+    
+    fig.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",   # whole canvas
+        plot_bgcolor="rgba(0,0,0,0)",     # plotting area
+    )
+
+    st.plotly_chart(fig)    
+    
