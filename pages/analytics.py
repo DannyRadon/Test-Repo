@@ -19,6 +19,10 @@ from helpers.data_funcs import *
 import pvlib
 
 
+with open("static/calculator.html", "r", encoding="utf-8") as f:
+    calc_html = f.read()
+    
+b64_calc = base64.b64encode(calc_html.encode()).decode()
 
 # Loading in the Data (If Not Cached)
 df_visser, df_bissell, df_aeso = load_data()
@@ -63,7 +67,10 @@ if "dataflow" not in st.session_state:
 if "calc_btn" not in st.session_state:
     st.session_state.calc_btn = False
 
-
+if st.query_params.get("show_calc") == "1":
+    show_calculator()
+    st.query_params.pop("show_calc")
+    
 # --- GENERATING DYNAMIC URL LINKS ---
 
 # Dataset URLs
@@ -720,9 +727,9 @@ if df_select == "AESO":
             </div>
         </div>
         <div class="menu-item">
-            Utils
+            Tools
             <div class="dropdown">
-                <div>Calculator</div>
+                <div id="calc-trigger" style="cursor:pointer;">Calculator</div>
                 <div>Write Pad</div>
             </div>
         </div>
@@ -733,6 +740,13 @@ if df_select == "AESO":
                 <div>Report a Bug</div>
                 <div>About the Dashboard</div>
             </div>
+    </div>
+        <div id="calculator-popout" style="display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: white; border: 3px solid #3170de; z-index: 99999; width: 320px; height: 480px; box-shadow: 0px 4px 15px rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
+            <div style="background: #3170de; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: bold; font-family: sans-serif;">Calculator</span>
+            <button id="close-calc" style="background: none; border: none; color: red; cursor: pointer; font-size: 20px; font-weight: bold;">&times;</button>
+        </div>
+        <iframe src="data:text/html;base64,{b64_calc}" style="width: 100%; height: 430px; border: none; overflow: hidden;" scrolling="no"></iframe>
     </div>
     <div class="taskbar-clock" id="taskbar-clock">00:00:00 PM</div>
     <script>
@@ -972,7 +986,30 @@ if df_select == "AESO":
         setInterval(updateClock, 1000);
         updateClock();
     </script>
-    """, height=0)     
+    """, height=0)   
+    
+    execute_js("""
+    const doc = window.parent.document;
+    const calcBtn = doc.getElementById('calc-trigger');
+    const calcPopout = doc.getElementById('calculator-popout');
+    const closeBtn = doc.getElementById('close-calc');
+    
+    // Toggle from the Menu
+    if (calcBtn && calcPopout) {
+        calcBtn.onclick = function() {
+            const isHidden = calcPopout.style.display === 'none';
+            calcPopout.style.display = isHidden ? 'block' : 'none';
+        };
+    }
+    
+    // Close from the 'x'
+    if (closeBtn && calcPopout) {
+        closeBtn.onclick = function() {
+            // FIXED: Changed 'popout' to 'calcPopout' to match the variable above
+            calcPopout.style.display = 'none';
+        };
+    }
+    """)    
     
 
 
@@ -1105,7 +1142,7 @@ else:
         <div class="menu-item">
             Tools
             <div class="dropdown">
-                <div onclick="toggleCalculator()" style="cursor:pointer; padding: 5px 10px;">Calculator</div>
+                <div id="calc-trigger" style="cursor:pointer;">Calculator</div>
                 <div>Write Pad</div>
             </div>
         </div>
@@ -1117,11 +1154,12 @@ else:
                 <div>About the Dashboard</div>
             </div>
     </div>
-    <div id="calculator-popout" style="display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: white; border: 3px solid #3170de; padding: 20px; z-index: 99999; width: 250px; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
-        <div style="background: #3170de; color: white; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-weight: bold; font-family: sans-serif;">Calculator</span>
-            <button onclick="toggleCalculator()" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px; font-weight: bold;">&times;</button>
-        </div>
+    <div id="calculator-popout" style="display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: white; border: 3px solid #3170de; z-index: 99999; width: 320px; height: 480px; box-shadow: 0px 4px 15px rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
+    <div style="background: #3170de; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: bold; font-family: sans-serif;">Calculator</span>
+        <button id="close-calc" style="background: none; border: none; color: red; cursor: pointer; font-size: 20px; font-weight: bold;">&times;</button>
+    </div>
+    <iframe src="data:text/html;base64,{b64_calc}" style="width: 100%; height: 430px; border: none; overflow: hidden;" scrolling="no"></iframe>
 </div>
     <div class="taskbar-clock" id="taskbar-clock">00:00:00 PM</div>
     <script>
@@ -1152,12 +1190,21 @@ else:
         setInterval(updateTaskbarClock, 1000);
         updateTaskbarClock();
     </script>
+    <script>
+        function openCalc() {{
+            const url = new URL(window.location);
+            url.searchParams.set("show_calc", "1");
+            window.location.href = url.toString();
+        }}
+    </script>
     """, unsafe_allow_html=True)
     
+
    
+
     # ---------------------------------- CODE SECTION FOR GUI USER INPUT to SYSTEM OUTPUTS --------------------------------------------------------------
     
-
+    
     
     # Checking for Import or Export Condition
     
@@ -1275,7 +1322,7 @@ else:
             
     with tab1:
                 
-        st.write("In Development...")
+        st.write("Insert KPI Cards Here...")
                 
                 
     with tab2:
@@ -1339,5 +1386,25 @@ else:
     </script>
     """, height=0)    
 
+    execute_js("""
+    const doc = window.parent.document;
+    const calcBtn = doc.getElementById('calc-trigger');
+    const calcPopout = doc.getElementById('calculator-popout');
+    const closeBtn = doc.getElementById('close-calc');
     
-
+    // Toggle from the Menu
+    if (calcBtn && calcPopout) {
+        calcBtn.onclick = function() {
+            const isHidden = calcPopout.style.display === 'none';
+            calcPopout.style.display = isHidden ? 'block' : 'none';
+        };
+    }
+    
+    // Close from the 'x'
+    if (closeBtn && calcPopout) {
+        closeBtn.onclick = function() {
+            // FIXED: Changed 'popout' to 'calcPopout' to match the variable above
+            calcPopout.style.display = 'none';
+        };
+    }
+    """)
