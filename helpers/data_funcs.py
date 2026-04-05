@@ -13,7 +13,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import seaborn as sns
 
-import streamlit.components.v1 as stc
+import streamlit.components.v1 as components
 
 from xgboost import XGBRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
@@ -431,19 +431,17 @@ def aeso_daily_agg(df, datetime_col="DateTime"):
 
 
 # CODE SECTION FOR UTILITIES / TOOLS -----------------------------------
-
-def calculator(width=350, height=450):
-    
-    with open("utils/calculator.html", "r") as calc_file:
-        page = calc_file.read()
-        stc.html(page, width=width, height=height, scrolling=False)
-    
-    # Encode it so the IFrame can read it as a source
-    b64_calc = base64.b64encode(calc_html.encode()).decode()
-    calc_src = f"data:text/html;base64,{b64_calc}"    
+@st.cache_data
+def load_calculator():
+    with open("utils/calculator.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 
-
+@st.dialog("Calculator")
+def show_calculator():
+    calc_html = load_calculator()
+    # height should match your calculator's design
+    components.html(calc_html, height=500, scrolling=False)
 
 
 
@@ -1293,3 +1291,17 @@ def render_graphic_comparison(df, df_project, og_size, cap, tilt, az):
 
     st.plotly_chart(fig)    
     
+    
+    
+def execute_js(js_code):
+    # This invisible component reaches out to the main page DOM
+    components.html(f"""
+        <script>
+            const parentDoc = window.parent.document;
+            const script = parentDoc.createElement('script');
+            script.innerHTML = `{js_code}`;
+            parentDoc.body.appendChild(script);
+        </script>
+        """, height=0, width=0)
+
+
