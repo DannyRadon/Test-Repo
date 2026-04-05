@@ -1170,7 +1170,8 @@ def render_comparison_table(df, df_project, og_size, capacity, tilt, azimuth):
         "CO₂ Saved (t)": df['co2_avoided'].sum().round(2),
         "Trees Saved": df['trees_saved'].sum().round(),
         "Homes Powered": df['homes_powered'].sum().round(2),
-        "Cars Off Road": df['cars_offroad'].sum().round(2)
+        "Cars Off Road": df['cars_offroad'].sum().round(2),
+        "Coal Tonnage": df['coal_tonnage_avoided'].sum().round(2)
     }
 
     # ---------- SIMULATED VALUES ----------
@@ -1182,7 +1183,8 @@ def render_comparison_table(df, df_project, og_size, capacity, tilt, azimuth):
         "CO₂ Saved (t)": df_project['co2_avoided'].sum().round(2),
         "Trees Saved": df_project['trees_saved'].sum().round(),
         "Homes Powered": df_project['homes_powered'].sum().round(2),
-        "Cars Off Road": df_project['cars_offroad'].sum().round(2)
+        "Cars Off Road": df_project['cars_offroad'].sum().round(2),
+        "Coal Tonnage": df_project['coal_tonnage_avoided'].sum().round(2)
     }
 
     # ---------- BUILD ROWS ----------
@@ -1260,8 +1262,7 @@ def render_graphic_comparison(df, df_project, og_size, cap, tilt, az):
     
     impact_cols = [
         "co2_avoided", "cars_offroad",
-        "homes_powered", "coal_tonnage_avoided", 
-        "coal_emission_avoided"
+        "homes_powered", "coal_tonnage_avoided"
     ]
 
     og_totals = df[impact_cols].sum()
