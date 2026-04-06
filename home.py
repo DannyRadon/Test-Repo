@@ -9,6 +9,12 @@ from helpers.data_funcs import *    # Importing Helper Functions for Dashboard
 # Initializing the Data into Dashboard
 df_visser, df_bissell, df_aeso = load_data()     # Loading the datasets
 
+# Open logo file
+with open("static/logo.png", "rb") as l:
+    logo_bytes = l.read()
+
+# Encode to base64
+b64_logo = base64.b64encode(logo_bytes).decode()
 
 
 # Creating a Session-State for User
@@ -172,10 +178,12 @@ header[data-testid="stHeader"] {
 </style>
 """, unsafe_allow_html=True)
 
-
-
- 
-st.title("SPICE Dashboard - Home Page")
+st.markdown(f"""
+<div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+    <img src="data:image/png;base64,{b64_logo}" style="height: 75px;">
+    <h1 style="margin: 0; padding: 0;">SPICE Dashboard - Home Page</h1>
+</div>
+""", unsafe_allow_html=True)
 
 # Pre-load icons
 icon_sys_info = get_base64_image("static/icon_sysinfo.png")
@@ -288,6 +296,9 @@ with tab3:
 
 with tab4: 
     st.header("Recent Dev Updates:")
+    st.write("3/29/26 - Restructured M-Learning Page -- XAI Section Completed")
+    st.write("3/30/26 - Fixed - M-Learning Model Compatibility - Reduced Load to Cache Time")
+    st.write("3/31/26 - Fixed - Interactivity Selecting Different Output Types for M-Learning Page.")
     st.write("3/31/26 - Added - Information to Model's Perf. Metrics, Feature importance & Residual Analysis")
     st.write("3/31/26 - Fixed - Metrics Value 'Blow Up'")
     st.write("4/1/26 - Added - RAG Chatbot (Course Instruction)")
@@ -295,7 +306,5 @@ with tab4:
     st.write("4/3/26 - Added - Data Overview & Methodology Page-Tabs to all Pages (not Sys Info)")
     st.write("4/3/26 - Added - View Modes to Impacts Page (Descriptive & Graphical)")
     st.write("4/3/26 - Added - Custom HTML KPI Metric Cards for Impacts Page (Descriptive View)")
-    st.write("4/3/26 - Added - PVLib Simulation Framework")
+    st.write("4/3/26 - Added - PVLib Simulation Framework (Implementation Coming Soon)")
     st.write("4/4/26 - Added - Tab Pages to Home Page adding SPICE Info, Dash Info, others.")
-    st.write("4/4/26 - Added - Implemented 'Solar Generation Eco-Impact Simulator' for Impacts Page")
-    
