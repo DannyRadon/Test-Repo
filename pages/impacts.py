@@ -1,146 +1,8 @@
 # ---------------------------------------- Test File for Side-Bar Navigation  --------------------------------------------------------
 
 # Import Pool
-import base64
-import pvlib
-import urllib.parse
 import streamlit as st
 import streamlit.components.v1 as components
-import pandas as pd
-import plotly.express as px
-import matplotlib.pyplot as plt
-
-from st_click_detector import click_detector
-from helpers.data_load import load_data
-from helpers.data_funcs import *
-
-
-with open("static/calculator.html", "r", encoding="utf-8") as f:
-    calc_html = f.read()
-    
-b64_calc = base64.b64encode(calc_html.encode()).decode()
-
-
-with open("static/writepad.html", "r", encoding="utf-8") as wp:
-    pad_html = wp.read()
-
-b64_calc = base64.b64encode(calc_html.encode()).decode()
-b64_pad = base64.b64encode(pad_html.encode()).decode()
-
-# Loading in the Data (If Not Cached)
-df_visser, df_bissell, df_aeso = load_data()
-
-range_select = "Daily"
-
-params = st.query_params
-
-## --- SYNC URL TO SESSION STATE ---
-for url_key, state_key in [
-    ("dataset", "dataset"), 
-    ("graph", "graph_type"), 
-    ("x_var", "x_var"), 
-    ("y_var", "y_var"),
-    ("view", "view_mode"),
-    ("calc_btn", "calc_btn"),
-    ("dataflow", "dataflow")
-]:
-    if url_key in st.query_params:
-        st.session_state[state_key] = st.query_params[url_key]
-
-
-# --- SETTING DEFAULTS --- If the app is opened for the first time (no URL params)
-
-if "dataset" not in st.session_state:
-    st.session_state.dataset = "New Jubilee"
-
-if "graph_type" not in st.session_state:
-    st.session_state.graph_type = "Line"
-
-if "x_var" not in st.session_state:
-    st.session_state.x_var = "month"
-
-if "y_var" not in st.session_state:
-    st.session_state.y_var = "co2_avoided"
-
-if "view_mode" not in st.session_state:
-    st.session_state.view_mode = "Graphical"
-
-if "dataflow" not in st.session_state:
-    st.session_state.dataflow = "None"
-
-if "calc_btn" not in st.session_state:
-    st.session_state.calc_btn = False
-
-
-# --- GENERATING DYNAMIC URL LINKS ---
-
-# Dataset URLs
-url_bissell = build_url(dataset="Bissell Thrift")
-url_jubilee = build_url(dataset="New Jubilee")
-
-# Import & Export URLs
-url_export = build_url(dataflow="Export")
-
-# Graph Visualization URLs
-url_pie = build_url(graph="Pie")
-url_tree = build_url(graph="Tree")
-
-url_descriptive = build_url(view="Descriptive")
-url_graphical = build_url(view="Graphical")
-
-# X Variable URLs
-url_month = build_url(x_var="month")
-url_projects = build_url(x_var="projects")
-
-# Y Variable URLs -- Energy Outputs & Environmental Calculations
-
-url_output = build_url(y_var="output")
-url_ratio = build_url(y_var="ratio")
-
-url_carbon = build_url(y_var="carbon")
-url_trees = build_url(y_var="trees")
-url_cars = build_url(y_var="cars")
-url_homes = build_url(y_var="homes")
-url_coale = build_url(y_var="coal_e")
-url_coalt = build_url(y_var="coal_t")
-url_gas = build_url(y_var="gas")
-                                    
-
-data_action = "Carbon Avoided"
-
-# Global Variables to Use for State Session Updates & Calls
-df_selection = st.session_state.dataset
-    
-vis_type = st.session_state.graph_type
-if vis_type not in ["Pie", "Tree"]:
-    vis_type = "Pie"
-
-x_new = st.session_state.x_var
-
-if x_new not in ['month', 'projects']:
-    x_new = "month"
-    
-y_new = st.session_state.y_var
-dataflow = st.session_state.dataflow
-view_mode = st.session_state.view_mode
-
-
-# State Session Checks for Current Dataset(s)
-if df_selection == "Bissell Thrift":
-    df = df_bissell
-    df2 = df_visser
-    df_select = "Bissell Thrift Shop"
-    df2_select = "New Jubilee"
-    
-else:
-    df = df_visser
-    df2 = df_bissell
-    df_select = "New Jubilee"
-    df2_select = "Bissell Thrift Shop"
-
-
-
-# ------------------------------------------ CSS & HTML GRAPHICS HANDLING SECTION ------------------------------------------
 
 # This CSS creates the Gradient Background 
 st.markdown("""
@@ -151,17 +13,6 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
-
-
-# Loading in the Icons
-icon_sys_info = get_base64_image("static/icon_sysinfo.png")
-icon_analytics_info = get_base64_image("static/icon_analytics.png")
-icon_ml_info = get_base64_image("static/icon_ml.png")
-icon_home = get_base64_image("static/icon_home.png")
-icon_chat = get_base64_image("static/icon_chat.png")
-
-# Title for the Page
-st.title("Environmental Impacts")
 
 
 # This CSS Handles the Setup for the Canvas for the Icons and Clickable Regions for them...
@@ -474,6 +325,160 @@ div[data-testid="stWidgetLabel"] {
 }
 </style>
 """, unsafe_allow_html=True)
+
+import base64
+import pvlib
+import urllib.parse
+
+import pandas as pd
+import plotly.express as px
+import matplotlib.pyplot as plt
+
+from st_click_detector import click_detector
+from helpers.data_load import load_data
+from helpers.data_funcs import *
+
+
+with open("static/calculator.html", "r", encoding="utf-8") as f:
+    calc_html = f.read()
+    
+b64_calc = base64.b64encode(calc_html.encode()).decode()
+
+
+with open("static/writepad.html", "r", encoding="utf-8") as wp:
+    pad_html = wp.read()
+
+b64_calc = base64.b64encode(calc_html.encode()).decode()
+b64_pad = base64.b64encode(pad_html.encode()).decode()
+
+# Loading in the Data (If Not Cached)
+df_visser, df_bissell, df_aeso = load_data()
+
+range_select = "Daily"
+
+params = st.query_params
+
+## --- SYNC URL TO SESSION STATE ---
+for url_key, state_key in [
+    ("dataset", "dataset"), 
+    ("graph", "graph_type"), 
+    ("x_var", "x_var"), 
+    ("y_var", "y_var"),
+    ("view", "view_mode"),
+    ("calc_btn", "calc_btn"),
+    ("dataflow", "dataflow")
+]:
+    if url_key in st.query_params:
+        st.session_state[state_key] = st.query_params[url_key]
+
+
+# --- SETTING DEFAULTS --- If the app is opened for the first time (no URL params)
+
+if "dataset" not in st.session_state:
+    st.session_state.dataset = "New Jubilee"
+
+if "graph_type" not in st.session_state:
+    st.session_state.graph_type = "Line"
+
+if "x_var" not in st.session_state:
+    st.session_state.x_var = "month"
+
+if "y_var" not in st.session_state:
+    st.session_state.y_var = "co2_avoided"
+
+if "view_mode" not in st.session_state:
+    st.session_state.view_mode = "Graphical"
+
+if "dataflow" not in st.session_state:
+    st.session_state.dataflow = "None"
+
+if "calc_btn" not in st.session_state:
+    st.session_state.calc_btn = False
+
+
+# --- GENERATING DYNAMIC URL LINKS ---
+
+# Dataset URLs
+url_bissell = build_url(dataset="Bissell Thrift")
+url_jubilee = build_url(dataset="New Jubilee")
+
+# Import & Export URLs
+url_export = build_url(dataflow="Export")
+
+# Graph Visualization URLs
+url_pie = build_url(graph="Pie")
+url_tree = build_url(graph="Tree")
+
+url_descriptive = build_url(view="Descriptive")
+url_graphical = build_url(view="Graphical")
+
+# X Variable URLs
+url_month = build_url(x_var="month")
+url_projects = build_url(x_var="projects")
+
+# Y Variable URLs -- Energy Outputs & Environmental Calculations
+
+url_output = build_url(y_var="output")
+url_ratio = build_url(y_var="ratio")
+
+url_carbon = build_url(y_var="carbon")
+url_trees = build_url(y_var="trees")
+url_cars = build_url(y_var="cars")
+url_homes = build_url(y_var="homes")
+url_coale = build_url(y_var="coal_e")
+url_coalt = build_url(y_var="coal_t")
+url_gas = build_url(y_var="gas")
+                                    
+
+data_action = "Carbon Avoided"
+
+# Global Variables to Use for State Session Updates & Calls
+df_selection = st.session_state.dataset
+    
+vis_type = st.session_state.graph_type
+if vis_type not in ["Pie", "Tree"]:
+    vis_type = "Pie"
+
+x_new = st.session_state.x_var
+
+if x_new not in ['month', 'projects']:
+    x_new = "month"
+    
+y_new = st.session_state.y_var
+dataflow = st.session_state.dataflow
+view_mode = st.session_state.view_mode
+
+
+# State Session Checks for Current Dataset(s)
+if df_selection == "Bissell Thrift":
+    df = df_bissell
+    df2 = df_visser
+    df_select = "Bissell Thrift Shop"
+    df2_select = "New Jubilee"
+    
+else:
+    df = df_visser
+    df2 = df_bissell
+    df_select = "New Jubilee"
+    df2_select = "Bissell Thrift Shop"
+
+
+
+# ------------------------------------------ CSS & HTML GRAPHICS HANDLING SECTION ------------------------------------------
+
+
+# Loading in the Icons
+icon_sys_info = get_base64_image("static/icon_sysinfo.png")
+icon_analytics_info = get_base64_image("static/icon_analytics.png")
+icon_ml_info = get_base64_image("static/icon_ml.png")
+icon_home = get_base64_image("static/icon_home.png")
+icon_chat = get_base64_image("static/icon_chat.png")
+
+# Title for the Page
+st.title("Environmental Impacts")
+
+
+
 
 
 
