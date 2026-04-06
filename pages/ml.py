@@ -10,40 +10,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("Machine Learning & Forecasting")
-
-import streamlit.components.v1 as components
-import matplotlib.pyplot as plt
-from helpers.data_load import load_data
-from helpers.data_funcs import *
-
-import base64
-
-# Imported ML pieces
-from src.aeso_cleaning_fe1 import *
-from src.modeling_2 import *
-
-
-# Loading in the Icons
-icon_sys_info = get_base64_image("static/icon_sysinfo.png")
-icon_impacts_info = get_base64_image("static/icon_impacts.png")
-icon_analytics_info = get_base64_image("static/icon_analytics.png")
-icon_home = get_base64_image("static/icon_home.png")
-icon_chat = get_base64_image("static/icon_chat.png")
-
-
-with open("static/calculator.html", "r", encoding="utf-8") as f:
-    calc_html = f.read()
-    
-b64_calc = base64.b64encode(calc_html.encode()).decode()
-
-
-with open("static/writepad.html", "r", encoding="utf-8") as wp:
-    pad_html = wp.read()
-
-b64_pad = base64.b64encode(pad_html.encode()).decode()
-
-
 # THIS MARKDOWN FILE HANDLES THE TOP BAR & SIDE-BAR GUI APPEARANCES
 st.markdown("""
 <style>
@@ -354,6 +320,39 @@ div[data-testid="stWidgetLabel"] {
 }
 </style>
 """, unsafe_allow_html=True)
+
+st.title("Machine Learning & Forecasting")
+
+import streamlit.components.v1 as components
+import matplotlib.pyplot as plt
+from helpers.data_load import load_data
+from helpers.data_funcs import *
+
+import base64
+
+# Imported ML pieces
+from src.aeso_cleaning_fe1 import *
+from src.modeling_2 import *
+
+
+# Loading in the Icons
+icon_sys_info = get_base64_image("static/icon_sysinfo.png")
+icon_impacts_info = get_base64_image("static/icon_impacts.png")
+icon_analytics_info = get_base64_image("static/icon_analytics.png")
+icon_home = get_base64_image("static/icon_home.png")
+icon_chat = get_base64_image("static/icon_chat.png")
+
+
+with open("static/calculator.html", "r", encoding="utf-8") as f:
+    calc_html = f.read()
+    
+b64_calc = base64.b64encode(calc_html.encode()).decode()
+
+
+with open("static/writepad.html", "r", encoding="utf-8") as wp:
+    pad_html = wp.read()
+
+b64_pad = base64.b64encode(pad_html.encode()).decode()
 
 
 
