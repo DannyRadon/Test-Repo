@@ -200,7 +200,7 @@ def plotly_vis(df, x_var, y_var, vis_kind, color=None, df_select="", data_action
     if vis_kind == "pie":
         
         fig.update_layout(
-            title=f"{data_action} for {df_select}",
+            title=f"{data_action} for {df_select} by Month",
             template="presentation",  # or "plotly_white"
             paper_bgcolor="rgba(0,0,0,0)",   # transparent background
             plot_bgcolor="rgba(56,196,1,0)"
@@ -214,7 +214,7 @@ def plotly_vis(df, x_var, y_var, vis_kind, color=None, df_select="", data_action
     else:
         # Layout styling (replaces all your plt.* calls)
         fig.update_layout(
-            title=f"{data_action} for {df_select}",
+            title=f"Impact Stats for {df_select}",
             xaxis_title=x_var,
             yaxis_title=y_var,
             template="presentation",  # or "plotly_white"
@@ -297,6 +297,7 @@ def build_url(**kwargs):
         'graph': st.session_state.get('graph_type'),
         'x_var': st.session_state.get('x_var'),
         'y_var': st.session_state.get('y_var'),
+        'compare': st.session_state.get('compare')
     }
     # Overwrite only the specific change (e.g., changing just the dataset)
     params.update(kwargs)
@@ -1255,7 +1256,7 @@ def render_comparison_table(df, df_project, og_size, capacity, tilt, azimuth):
 
     st.components.v1.html(html, height=400, scrolling=False)
     
-    
+@st.cache_data    
 def render_graphic_comparison(df, df_project, og_size, cap, tilt, az):
     
     impact_cols = [
@@ -1292,9 +1293,9 @@ def render_graphic_comparison(df, df_project, og_size, cap, tilt, az):
     st.plotly_chart(fig)    
     
     
-    
+# This Function Helps to Bridge Python & JS/HTML
 def execute_js(js_code):
-    # This invisible component reaches out to the main page DOM
+
     components.html(f"""
         <script>
             const parentDoc = window.parent.document;
@@ -1305,3 +1306,157 @@ def execute_js(js_code):
         """, height=0, width=0)
 
 
+@st.cache_data
+def render_general_table(df, og_size):
+    
+    # ---------- DATA VALUES ----------
+    orig = {
+        "Capacity (kW)": og_size,
+        "Total Output (kWh)": df['theoretical_kwh'].sum().round(2),
+        "Total CO₂ Saved (t)": df['co2_avoided'].sum().round(2),
+        "Total Tree Absorption Equiv.": df['trees_saved'].sum().round(),
+        "Total Homes Powered Equiv.": df['homes_powered'].sum().round(2),
+        "Total Cars Equiv.": df['cars_offroad'].sum().round(2),
+        "Total Coal Tonnage": df['coal_tonnage_avoided'].sum().round(2),
+        "Total Gas Emission Equiv.": df['gas_saved'].sum().round()
+        }
+
+    # ---------- BUILD ROWS ----------
+    rows_html = ""
+
+    for key in orig.keys():
+        o = orig[key]
+
+        rows_html += f"""
+        <tr>
+            <td>{key}</td>
+            <td>{o}</td>
+        </tr>
+        """
+
+    # ---------- FINAL HTML ----------
+    html_gen = f"""
+    <div style="
+        background: linear-gradient(
+            180deg,
+            #38c401 0%,
+            #7FAE42 25%,
+            #7FAE42 50%,
+            #38c401 100%
+        );
+        border: 5px solid #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 15px;
+    ">
+        <table style="
+            width:100%;
+            color:white;
+            border-collapse: collapse;
+            text-align:center;
+            font-size: 22px;
+        ">
+            <thead>
+                <tr style="border-bottom:1px solid white;">
+                    <th style="padding:10px;">Metric</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+    {rows_html}
+            </tbody>
+    
+        </table>
+    </div>
+    """
+
+    st.components.v1.html(html_gen, height=400, scrolling=False)
+    
+    
+
+@st.cache_data
+def render_descriptive_table(df, df_select):
+    
+    if df_select == "AESO":
+    
+        # ---------- DATA VALUES ----------
+        orig = {
+            "Memory Usage (MB)": ((df.memory_usage(deep=True).sum()) / 1024**2).round(),
+            "Total Cells": df.size,
+            "Data Rows": df.shape[0],
+            "Data Features": df.shape[1],
+            "Earliest Date": df['DateTime'].min(),
+            "Latest Date": df['DateTime'].max(),
+            "Duplicate Rows": df.duplicated().sum(),
+            "Total Nulls": df.isnull().sum().sum(),
+            "Null % of Data": (((df.isnull().sum().sum()) / df.size) * 100).round(1),
+            "Most Freq. Data-Type": df.dtypes.value_counts().idxmax(),
+            }
+    
+    else:
+        
+        orig = {
+            "Memory Usage (kB)": ((df.memory_usage(deep=True).sum()) / 1024).round(),
+            "Total Cells": df.size,
+            "Data Rows": df.shape[0],
+            "Data Features": df.shape[1],
+            "Earliest Date": df['time'].min(),
+            "Latest Date": df['time'].max(),
+            "Duplicate Rows": df.duplicated().sum(),
+            "Total Nulls": df.isnull().sum().sum(),
+            "Null % of Data": (((df.isnull().sum().sum()) / df.size) * 100).round(1),
+            "Most Freq. Data-Type": df.dtypes.value_counts().idxmax(),
+            }        
+
+    # ---------- BUILD ROWS ----------
+    rows_html = ""
+
+    for key in orig.keys():
+        o = orig[key]
+
+        rows_html += f"""
+        <tr>
+            <td>{key}</td>
+            <td>{o}</td>
+        </tr>
+        """
+
+    # ---------- FINAL HTML ----------
+    html_gen = f"""
+    <div style="
+        background: linear-gradient(
+            180deg,
+            #38c401 0%,
+            #7FAE42 25%,
+            #7FAE42 50%,
+            #38c401 100%
+        );
+        border: 5px solid #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 15px;
+    ">
+        <table style="
+            width:100%;
+            color:white;
+            border-collapse: collapse;
+            text-align:center;
+            font-size: 22px;
+        ">
+            <thead>
+                <tr style="border-bottom:1px solid white;">
+                    <th style="padding:10px;">Metric</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+    {rows_html}
+            </tbody>
+    
+        </table>
+    </div>
+    """
+
+    st.components.v1.html(html_gen, height=400, scrolling=False)
+    
+    
