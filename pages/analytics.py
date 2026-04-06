@@ -19,8 +19,12 @@ from helpers.data_funcs import *
 
 with open("static/calculator.html", "r", encoding="utf-8") as f:
     calc_html = f.read()
-    
+
+with open("static/writepad.html", "r", encoding="utf-8") as wp:
+    pad_html = wp.read()
+
 b64_calc = base64.b64encode(calc_html.encode()).decode()
+b64_pad = base64.b64encode(pad_html.encode()).decode()
 
 # Loading in the Data (If Not Cached)
 df_visser, df_bissell, df_aeso = load_data()
@@ -37,7 +41,8 @@ for url_key, state_key in [
     ("y_var", "y_var"),
     ("view", "view_mode"),
     ("calc_btn", "calc_btn"),
-    ("compare", "compare")
+    ("compare", "compare"),
+    ("dataflow", "dataflow")
 ]:
     if url_key in st.query_params:
         st.session_state[state_key] = st.query_params[url_key]
@@ -81,6 +86,7 @@ url_jubilee = build_url(dataset="New Jubilee")
 url_aeso = build_url(dataset="AESO")
 
 # Import & Export URLs
+url_import = build_url(dataflow="Import")
 url_export = build_url(dataflow="Export")
 
 # View Mode URLs -- Used for Switching Between Descriptive vs Graphical
@@ -1349,7 +1355,7 @@ else:
             </div>
         </div>
     </div>
-                <div>Import Dataset</div>
+                <a href="{url_import}" target="_self">Import Dataset</a>
                 <a href="{url_export}" target="_self">Export Dataset</a>
             </div>
         </div>
@@ -1450,7 +1456,7 @@ else:
             Tools
             <div class="dropdown">
                 <div id="calc-trigger" style="cursor:pointer;">Calculator</div>
-                <div>Write Pad</div>
+                <div id="pad-trigger" style="cursor:pointer;">Write Pad</div>
             </div>
         </div>
         <div class="menu-item">
@@ -1468,6 +1474,13 @@ else:
     </div>
     <iframe src="data:text/html;base64,{b64_calc}" style="width: 100%; height: 430px; border: none; overflow: hidden;" scrolling="no"></iframe>
 </div>
+    <div id="pad-popout" style="display: none; position: fixed; top: 20%; left: 50%; transform: translate(-50%); background: white; border: 3px solid #81c046; z-index: 99999; width: 400px; height: 500px; box-shadow: 0px 4px 15px rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
+        <div style="background: #38c401; color: white; padding: 10px 15px; display: flex; justify-content: space-between;">
+            <span style="font-weight: bold;">Write Pad</span>
+            <button id="close-pad" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
+        </div>
+        <iframe src="data:text/html;base64,{b64_pad}" style="width: 100%; height: 440px; border: none;"></iframe>
+    </div>
     <div class="taskbar-clock" id="taskbar-clock">00:00:00 PM</div>
     <script>
     
@@ -1516,9 +1529,40 @@ else:
     # Checking for Import or Export Condition
     
     if dataflow == "Export":
-        csv = df.to_csv(index=False).encode("utf-8")
-        st.download_button("Download CSV", data=csv, file_name="exported_dataset.csv", mime="text/csv")
-        dataflow = "None"
+        csv = df.to_csv(index=False)
+        b64 = base64.b64encode(csv.encode()).decode()
+    
+        file_name = f"{df_select}_dataset.csv"
+    
+        download_html = f"""
+        <html>
+        <body>
+            <a id="download_link" href="data:file/csv;base64,{b64}" download="{file_name}"></a>
+            <script>
+                document.getElementById('download_link').click();
+            </script>
+        </body>
+        </html>
+        """
+    
+        st.components.v1.html(download_html, height=0)
+    
+        st.session_state.dataflow = "None"
+        
+        
+    if dataflow == "Import":
+        with st.container():
+            st.markdown("## Import Dataset")
+        
+            uploaded_file = st.file_uploader("", type=["csv"])
+        
+            if uploaded_file:
+                df_uploaded = pd.read_csv(uploaded_file)
+                st.session_state.df_uploaded = df_uploaded
+                st.session_state.dataset = "Uploaded"
+        
+                st.success("Loaded!")
+                st.session_state.dataflow = "None"    
     
     
     # ------------- This Section Handles the Y-Variables for Visuals --------
@@ -1750,6 +1794,25 @@ else:
         closeBtn.onclick = function() {
             // FIXED: Changed 'popout' to 'calcPopout' to match the variable above
             calcPopout.style.display = 'none';
+        };
+    }
+    """)
+    
+    execute_js("""
+    const padBtn = doc.getElementById('pad-trigger');
+    const padPopout = doc.getElementById('pad-popout');
+    const closePad = doc.getElementById('close-pad');
+    
+    if (padBtn && padPopout) {
+        padBtn.onclick = function() {
+            const isHidden = padPopout.style.display === 'none';
+            padPopout.style.display = isHidden ? 'block' : 'none';
+        };
+    }
+    
+    if (closePad && padPopout) {
+        closePad.onclick = function() {
+            padPopout.style.display = 'none';
         };
     }
     """)
