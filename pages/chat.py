@@ -1,7 +1,5 @@
-# Importing Streamlit to Initialize Engine + Custom GUI System
+
 import streamlit as st
-from helpers.data_funcs import *
-from helpers.data_load import *
 
 # This CSS creates the Gradient Background 
 st.markdown("""
@@ -12,13 +10,6 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
-
-# Loading in the Icons
-icon_sys_info = get_base64_image("static/icon_sysinfo.png")
-icon_impacts_info = get_base64_image("static/icon_impacts.png")
-icon_ml_info = get_base64_image("static/icon_ml.png")
-icon_home = get_base64_image("static/icon_home.png")
-icon_analytics = get_base64_image("static/icon_analytics.png")
 
 # This CSS Handles the Setup for the Canvas for the Icons and Clickable Regions for them...
 st.markdown("""
@@ -335,6 +326,24 @@ div[data-testid="stWidgetLabel"] {
 
 """, unsafe_allow_html=True)
 
+import pandas as pd
+from sentence_transformers import SentenceTransformer, util
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
+from helpers.data_funcs import *
+from helpers.data_load import *
+
+
+
+
+# Loading in the Icons
+icon_sys_info = get_base64_image("static/icon_sysinfo.png")
+icon_impacts_info = get_base64_image("static/icon_impacts.png")
+icon_ml_info = get_base64_image("static/icon_ml.png")
+icon_home = get_base64_image("static/icon_home.png")
+icon_analytics = get_base64_image("static/icon_analytics.png")
+
+
+
 
 
 # This CSS Handles the Green Background for the Icon Sections - This is setup to be handled by the HTML stuff down below
@@ -457,13 +466,11 @@ with col4:
 with col5:
     if st.button(" ", key="analytics_info_btn"):
         st.switch_page("pages/analytics.py")
-
-
-
-import pandas as pd
-from sentence_transformers import SentenceTransformer, util
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
-
+        
+        
+        
+        
+        
         
 
 # -----------------------------------------------------------------------------
