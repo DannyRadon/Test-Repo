@@ -1,30 +1,5 @@
-# Import Pool
+# Loading Streamlit Engine
 import streamlit as st              # Importing StreamLit Dashboard Module as 'st'
-import base64
-
-from helpers.data_load import *     # Importing Data Loaders from Helpers File
-from helpers.data_funcs import *    # Importing Helper Functions for Dashboard 
-
-
-# Initializing the Data into Dashboard
-df_visser, df_bissell, df_aeso = load_data()     # Loading the datasets
-
-# Open logo file
-with open("static/logo.png", "rb") as l:
-    logo_bytes = l.read()
-
-# Encode to base64
-b64_logo = base64.b64encode(logo_bytes).decode()
-
-
-# Creating a Session-State for User
-if "page" not in st.session_state:
-    st.session_state.page = "home"
-
-#
-
-# ---------------------------------------------- CSS & HTML DASHBOARD GRAPHICAL SETUP AREA -------------------------------------------------
-
 
 # This CSS creates the Gradient Background -- The Main Background of the PAge
 st.markdown("""
@@ -36,11 +11,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
-
-
-
-# This CSS Section Handles the Display of the Icons and the Clickable Regions for them 
 
 # This Handles the "Card" Background for the Icons along with Icon Image Size (Default Card Color - Orange)
 st.markdown("""
@@ -178,8 +148,36 @@ header[data-testid="stHeader"] {
 </style>
 """, unsafe_allow_html=True)
 
+# Importing Base64 Encode/Decode
+import base64
+
+# Importing Helper & Data Functions
+from helpers.data_load import *     # Importing Data Loaders from Helpers File
+from helpers.data_funcs import *    # Importing Helper Functions for Dashboard 
+
+
+# Initializing the Data into Dashboard
+df_visser, df_bissell, df_aeso = load_data()     # Loading the datasets
+
+# Open logo file
+with open("static/logo.png", "rb") as l:
+    logo_bytes = l.read()
+
+# Encode to base64
+b64_logo = base64.b64encode(logo_bytes).decode()
+
+
+# Creating a Session-State for User
+if "page" not in st.session_state:
+    st.session_state.page = "home"
+
+
+# This CSS Section Handles the Display of the Icons and the Clickable Regions for them 
+
+
+
 st.markdown(f"""
-<div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+<div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
     <img src="data:image/png;base64,{b64_logo}" style="height: 75px;">
     <h1 style="margin: 0; padding: 0;">SPICE Dashboard - Home Page</h1>
 </div>
@@ -308,9 +306,3 @@ with tab4:
     st.write("4/3/26 - Added - Custom HTML KPI Metric Cards for Impacts Page (Descriptive View)")
     st.write("4/3/26 - Added - PVLib Simulation Framework (Implementation Coming Soon)")
     st.write("4/4/26 - Added - Tab Pages to Home Page adding SPICE Info, Dash Info, others.")
-    st.write("4/5/26 - Added - Calculator & Write Pad")
-    st.write("4/5/26 - Added - HTML-Rendered Descriptive Tables [Descriptive View]")
-    st.write("4/5/26 - Added - HTML-Based KPI Cards")
-    st.write("4/5/26 - Added - SPICE Logo to Home Page (PNG)")
-    st.write("4/5/26 - Added - Import/Export Data Features to Impacts & Analytics")
-    st.write("4/5/26 - Added - Comparison Format Seeing Two Datasets (Cannot Disable - Known Bug)")
