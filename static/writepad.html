@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+        }
+        textarea {
+            width: 100%;
+            height: 85%;
+            border: none;
+            padding: 10px;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+        }
+        .toolbar {
+            padding: 8px;
+            background: #f0f0f0;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <button onclick="saveText()">Save</button>
+    <button onclick="clearText()">Clear</button>
+</div>
+
+<textarea id="pad" placeholder="Start typing..."></textarea>
+
+<script>
+    function saveText() {
+        const text = document.getElementById("pad").value;
+        const blob = new Blob([text], { type: "text/plain" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "notes.txt";
+        a.click();
+    }
+
+    function clearText() {
+        document.getElementById("pad").value = "";
+    }
+</script>
+
+</body>
+</html>
