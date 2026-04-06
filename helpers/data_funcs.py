@@ -318,7 +318,8 @@ def build_url_ml(**kwargs):
         'graph': st.session_state.get('graph_type'),
         'x': st.session_state.get('x'),
         'y_test': st.session_state.get('y_test'),
-        'view_type': st.session_state.get('view_type')
+        'view_type': st.session_state.get('view_type'),
+        'dataflow': st.session_state.get('dataflow')
     }
     # Overwrite only the specific change (e.g., changing just the dataset)
     params.update(kwargs)
