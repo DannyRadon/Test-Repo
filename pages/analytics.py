@@ -1,180 +1,8 @@
 # ---------------------------------------- Test File for Side-Bar Navigation  --------------------------------------------------------
 
-# Import Pool
-import base64
-import urllib.parse
-
+# Importing Streamlit Engine
 import streamlit as st
 import streamlit.components.v1 as components
-
-import pandas as pd
-import plotly.express as px
-import matplotlib.pyplot as plt
-
-from st_click_detector import click_detector
-
-from helpers.data_load import load_data
-from helpers.data_funcs import *
-
-
-with open("static/calculator.html", "r", encoding="utf-8") as f:
-    calc_html = f.read()
-
-with open("static/writepad.html", "r", encoding="utf-8") as wp:
-    pad_html = wp.read()
-
-b64_calc = base64.b64encode(calc_html.encode()).decode()
-b64_pad = base64.b64encode(pad_html.encode()).decode()
-
-# Loading in the Data (If Not Cached)
-df_visser, df_bissell, df_aeso = load_data()
-
-range_select = "Daily"
-
-params = st.query_params
-
-# --- SYNC URL TO SESSION STATE ---
-for url_key, state_key in [
-    ("dataset", "dataset"), 
-    ("graph", "graph_type"), 
-    ("x_var", "x_var"), 
-    ("y_var", "y_var"),
-    ("view", "view_mode"),
-    ("calc_btn", "calc_btn"),
-    ("compare", "compare"),
-    ("dataflow", "dataflow")
-]:
-    if url_key in st.query_params:
-        st.session_state[state_key] = st.query_params[url_key]
-
-
-# --- SETTING DEFAULTS --- If the app is opened for the first time (no URL params)
-
-if "dataset" not in st.session_state:
-    st.session_state.dataset = "New Jubilee"
-
-if "graph_type" not in st.session_state:
-    st.session_state.graph_type = "Line"
-
-if "x_var" not in st.session_state:
-    st.session_state.x_var = "time"
-
-if "y_var" not in st.session_state:
-    st.session_state.y_var = "Daily Value Imputed"
-
-if "view_mode" not in st.session_state:
-    st.session_state.view_mode = "Graphical"
-
-if "dataflow" not in st.session_state:
-    st.session_state.dataflow = "None"
-
-if "calc_btn" not in st.session_state:
-    st.session_state.calc_btn = False
-
-if "compare" not in st.session_state:
-    st.session_state.compare = False
-
-if st.query_params.get("show_calc") == "1":
-    show_calculator()
-    st.query_params.pop("show_calc")
-    
-# --- GENERATING DYNAMIC URL LINKS ---
-
-# Dataset URLs
-url_bissell = build_url(dataset="Bissell Thrift")
-url_jubilee = build_url(dataset="New Jubilee")
-url_aeso = build_url(dataset="AESO")
-
-# Import & Export URLs
-url_import = build_url(dataflow="Import")
-url_export = build_url(dataflow="Export")
-
-# View Mode URLs -- Used for Switching Between Descriptive vs Graphical
-url_descriptive = build_url(view="Descriptive")
-url_graphical = build_url(view="Graphical")
-
-# Graph Visualization URLs
-url_bar = build_url(graph="Bar")
-url_line = build_url(graph="Line")
-url_area = build_url(graph="Area")
-url_scatter = build_url(graph="Scatter")
-url_histo = build_url(graph="Histogram")
-url_box = build_url(graph="Box")
-url_violin = build_url(graph="Violin")
-url_ecdf = build_url(graph="ecdf")
-url_matrix = build_url(graph="matrix")
-
-# X Variable URLs -- Time Series & Weather (Weather is Experimental)
-url_hourly = build_url(x_var="hourly")
-url_daily = build_url(x_var="daily")
-url_weekly = build_url(x_var="weekly")
-url_monthly = build_url(x_var="monthly")
-url_yearly = build_url(x_var="yearly")
-
-url_cloud = build_url(x_var="cloud")
-url_precip = build_url(x_var="precip")
-url_temp = build_url(x_var="temp")
-url_wind = build_url(x_var="wind")
-
-# Y Variable URLs -- Energy Outputs & Environmental Calculations
-
-url_output = build_url(y_var="output")
-url_ratio = build_url(y_var="ratio")
-
-url_carbon = build_url(y_var="carbon")
-url_trees = build_url(y_var="trees")
-url_cars = build_url(y_var="cars")
-url_homes = build_url(y_var="homes")
-url_coale = build_url(y_var="coal_e")
-url_coalt = build_url(y_var="coal_t")
-url_gas = build_url(y_var="gas")
-                                    
-
-# Dataset Comparison Trigger
-
-url_compare = build_url(compare="True")
-
-
-
-
-# Global Variables to Use for State Session Updates & Calls
-df_selection = st.session_state.dataset
-vis_type = st.session_state.graph_type
-
-if vis_type in ['Pie', 'Tree']:
-    vis_type = 'Line'
-
-x_new = st.session_state.x_var
-
-if x_new == "month" or x_new == "projects":
-    x_new = "time"
-    
-y_var = st.session_state.y_var
-view_mode = st.session_state.view_mode
-dataflow = st.session_state.dataflow
-
-compare = st.session_state.compare
-
-# State Session Checks for Current Dataset(s)
-if df_selection == "Bissell Thrift":
-    df = df_bissell.copy()
-    df_select = "Bissell Thrift Shop"
-    sys_cap = 30.7
-    
-elif df_selection == "New Jubilee":
-    df = df_visser.copy()
-    df_select = "New Jubilee"
-    sys_cap = 14.2
-
-else:
-    df = df_aeso.copy()
-    df_select = "AESO"
-    
-    
-    
-    
-
-# ------------------------------------------ CSS & HTML GRAPHICS HANDLING SECTION ------------------------------------------
 
 # This CSS creates the Gradient Background 
 st.markdown("""
@@ -185,20 +13,6 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
-
-def function(name):
-    pass
-
-
-# Loading in the Icons
-icon_sys_info = get_base64_image("static/icon_sysinfo.png")
-icon_impacts_info = get_base64_image("static/icon_impacts.png")
-icon_ml_info = get_base64_image("static/icon_ml.png")
-icon_home = get_base64_image("static/icon_home.png")
-icon_chat = get_base64_image("static/icon_chat.png")
-
-# Title for the Page
-st.title("Exploratory Analytics")
 
 # This CSS Handles the Setup for the Canvas for the Icons and Clickable Regions for them...
 st.markdown("""
@@ -513,6 +327,196 @@ div[data-testid="stWidgetLabel"] {
 
 
 """, unsafe_allow_html=True)
+
+import base64
+import urllib.parse
+
+
+
+import pandas as pd
+import plotly.express as px
+import matplotlib.pyplot as plt
+
+from st_click_detector import click_detector
+
+from helpers.data_load import load_data
+from helpers.data_funcs import *
+
+
+with open("static/calculator.html", "r", encoding="utf-8") as f:
+    calc_html = f.read()
+
+with open("static/writepad.html", "r", encoding="utf-8") as wp:
+    pad_html = wp.read()
+
+b64_calc = base64.b64encode(calc_html.encode()).decode()
+b64_pad = base64.b64encode(pad_html.encode()).decode()
+
+# Loading in the Data (If Not Cached)
+df_visser, df_bissell, df_aeso = load_data()
+
+range_select = "Daily"
+
+params = st.query_params
+
+# --- SYNC URL TO SESSION STATE ---
+for url_key, state_key in [
+    ("dataset", "dataset"), 
+    ("graph", "graph_type"), 
+    ("x_var", "x_var"), 
+    ("y_var", "y_var"),
+    ("view", "view_mode"),
+    ("calc_btn", "calc_btn"),
+    ("compare", "compare"),
+    ("dataflow", "dataflow")
+]:
+    if url_key in st.query_params:
+        st.session_state[state_key] = st.query_params[url_key]
+
+
+# --- SETTING DEFAULTS --- If the app is opened for the first time (no URL params)
+
+if "dataset" not in st.session_state:
+    st.session_state.dataset = "New Jubilee"
+
+if "graph_type" not in st.session_state:
+    st.session_state.graph_type = "Line"
+
+if "x_var" not in st.session_state:
+    st.session_state.x_var = "time"
+
+if "y_var" not in st.session_state:
+    st.session_state.y_var = "Daily Value Imputed"
+
+if "view_mode" not in st.session_state:
+    st.session_state.view_mode = "Graphical"
+
+if "dataflow" not in st.session_state:
+    st.session_state.dataflow = "None"
+
+if "calc_btn" not in st.session_state:
+    st.session_state.calc_btn = False
+
+if "compare" not in st.session_state:
+    st.session_state.compare = False
+
+if st.query_params.get("show_calc") == "1":
+    show_calculator()
+    st.query_params.pop("show_calc")
+    
+# --- GENERATING DYNAMIC URL LINKS ---
+
+# Dataset URLs
+url_bissell = build_url(dataset="Bissell Thrift")
+url_jubilee = build_url(dataset="New Jubilee")
+url_aeso = build_url(dataset="AESO")
+
+# Import & Export URLs
+url_import = build_url(dataflow="Import")
+url_export = build_url(dataflow="Export")
+
+# View Mode URLs -- Used for Switching Between Descriptive vs Graphical
+url_descriptive = build_url(view="Descriptive")
+url_graphical = build_url(view="Graphical")
+
+# Graph Visualization URLs
+url_bar = build_url(graph="Bar")
+url_line = build_url(graph="Line")
+url_area = build_url(graph="Area")
+url_scatter = build_url(graph="Scatter")
+url_histo = build_url(graph="Histogram")
+url_box = build_url(graph="Box")
+url_violin = build_url(graph="Violin")
+url_ecdf = build_url(graph="ecdf")
+url_matrix = build_url(graph="matrix")
+
+# X Variable URLs -- Time Series & Weather (Weather is Experimental)
+url_hourly = build_url(x_var="hourly")
+url_daily = build_url(x_var="daily")
+url_weekly = build_url(x_var="weekly")
+url_monthly = build_url(x_var="monthly")
+url_yearly = build_url(x_var="yearly")
+
+url_cloud = build_url(x_var="cloud")
+url_precip = build_url(x_var="precip")
+url_temp = build_url(x_var="temp")
+url_wind = build_url(x_var="wind")
+
+# Y Variable URLs -- Energy Outputs & Environmental Calculations
+
+url_output = build_url(y_var="output")
+url_ratio = build_url(y_var="ratio")
+
+url_carbon = build_url(y_var="carbon")
+url_trees = build_url(y_var="trees")
+url_cars = build_url(y_var="cars")
+url_homes = build_url(y_var="homes")
+url_coale = build_url(y_var="coal_e")
+url_coalt = build_url(y_var="coal_t")
+url_gas = build_url(y_var="gas")
+                                    
+
+# Dataset Comparison Trigger
+
+url_compare = build_url(compare="True")
+
+
+
+
+# Global Variables to Use for State Session Updates & Calls
+df_selection = st.session_state.dataset
+vis_type = st.session_state.graph_type
+
+if vis_type in ['Pie', 'Tree']:
+    vis_type = 'Line'
+
+x_new = st.session_state.x_var
+
+if x_new == "month" or x_new == "projects":
+    x_new = "time"
+    
+y_var = st.session_state.y_var
+view_mode = st.session_state.view_mode
+dataflow = st.session_state.dataflow
+
+compare = st.session_state.compare
+
+# State Session Checks for Current Dataset(s)
+if df_selection == "Bissell Thrift":
+    df = df_bissell.copy()
+    df_select = "Bissell Thrift Shop"
+    sys_cap = 30.7
+    
+elif df_selection == "New Jubilee":
+    df = df_visser.copy()
+    df_select = "New Jubilee"
+    sys_cap = 14.2
+
+else:
+    df = df_aeso.copy()
+    df_select = "AESO"
+    
+    
+    
+    
+
+# ------------------------------------------ CSS & HTML GRAPHICS HANDLING SECTION ------------------------------------------
+
+
+
+def function(name):
+    pass
+
+
+# Loading in the Icons
+icon_sys_info = get_base64_image("static/icon_sysinfo.png")
+icon_impacts_info = get_base64_image("static/icon_impacts.png")
+icon_ml_info = get_base64_image("static/icon_ml.png")
+icon_home = get_base64_image("static/icon_home.png")
+icon_chat = get_base64_image("static/icon_chat.png")
+
+# Title for the Page
+st.title("Exploratory Analytics")
 
 
 
@@ -1029,7 +1033,7 @@ if df_select == "AESO":
             Tools
             <div class="dropdown">
                 <div id="calc-trigger" style="cursor:pointer;">Calculator</div>
-                <div>Write Pad</div>
+                <div id="pad-trigger" style="cursor:pointer;">Write Pad</div>
             </div>
         </div>
         <div class="menu-item">
@@ -1040,12 +1044,19 @@ if df_select == "AESO":
                 <div>About the Dashboard</div>
             </div>
     </div>
-        <div id="calculator-popout" style="display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: white; border: 3px solid #3170de; z-index: 99999; width: 320px; height: 480px; box-shadow: 0px 4px 15px rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
-            <div style="background: #3170de; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;">
+        <div id="calculator-popout" style="display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: white; border: 3px solid #81c046; z-index: 99999; width: 320px; height: 480px; box-shadow: 0px 4px 15px rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
+            <div style="background: #38c401; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;">
             <span style="font-weight: bold; font-family: sans-serif;">Calculator</span>
-            <button id="close-calc" style="background: none; border: none; color: red; cursor: pointer; font-size: 20px; font-weight: bold;">&times;</button>
+            <button id="close-calc" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px; font-weight: bold;">&times;</button>
         </div>
         <iframe src="data:text/html;base64,{b64_calc}" style="width: 100%; height: 430px; border: none; overflow: hidden;" scrolling="no"></iframe>
+    </div>
+    <div id="pad-popout" style="display: none; position: fixed; top: 20%; left: 50%; transform: translate(-50%); background: white; border: 3px solid #81c046; z-index: 99999; width: 400px; height: 500px; box-shadow: 0px 4px 15px rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
+        <div style="background: #38c401; color: white; padding: 10px 15px; display: flex; justify-content: space-between;">
+            <span style="font-weight: bold;">Write Pad</span>
+            <button id="close-pad" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
+        </div>
+        <iframe src="data:text/html;base64,{b64_pad}" style="width: 100%; height: 440px; border: none;"></iframe>
     </div>
     <div class="taskbar-clock" id="taskbar-clock">00:00:00 PM</div>
     <script>
@@ -1315,6 +1326,28 @@ if df_select == "AESO":
         };
     }
     """)    
+    
+    
+    
+    execute_js("""
+    const padBtn = doc.getElementById('pad-trigger');
+    const padPopout = doc.getElementById('pad-popout');
+    const closePad = doc.getElementById('close-pad');
+    
+    if (padBtn && padPopout) {
+        padBtn.onclick = function() {
+            const isHidden = padPopout.style.display === 'none';
+            padPopout.style.display = isHidden ? 'block' : 'none';
+        };
+    }
+    
+    if (closePad && padPopout) {
+        closePad.onclick = function() {
+            padPopout.style.display = 'none';
+        };
+    }
+    """)
+    
     
 
 
