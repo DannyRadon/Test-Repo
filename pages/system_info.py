@@ -1,24 +1,4 @@
 import streamlit as st
-import pandas as pd
-
-from helpers.data_funcs import *
-from helpers.data_load import *
-
-st.title("System Information")
-st.divider()
-
-df_visser, df_bissell, df_aeso = load_data()
-
-# ------------------------------------ CSS & HTML GRAPHICAL SETUP AREA ---------------------------------------------------------------
-
-
-# Loading in the Icons
-icon_eda_info = get_base64_image("static/icon_analytics.png")
-icon_impacts_info = get_base64_image("static/icon_impacts.png")
-icon_ml_info = get_base64_image("static/icon_ml.png")
-icon_home = get_base64_image("static/icon_home.png")
-icon_chat = get_base64_image("static/icon_chat.png")
-
 
 # This CSS creates the Gradient Background -- The Main Background
 st.markdown("""
@@ -29,7 +9,6 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
-
 
 # This CSS Handles the Setup for the Canvas for the Icons and Clickable Regions for them...
 st.markdown("""
@@ -175,6 +154,31 @@ header[data-testid="stHeader"] {
 }
 </style>
 """, unsafe_allow_html=True)
+
+
+import pandas as pd
+
+from helpers.data_funcs import *
+from helpers.data_load import *
+
+st.title("System Information")
+st.divider()
+
+df_visser, df_bissell, df_aeso = load_data()
+
+# ------------------------------------ CSS & HTML GRAPHICAL SETUP AREA ---------------------------------------------------------------
+
+
+# Loading in the Icons
+icon_eda_info = get_base64_image("static/icon_analytics.png")
+icon_impacts_info = get_base64_image("static/icon_impacts.png")
+icon_ml_info = get_base64_image("static/icon_ml.png")
+icon_home = get_base64_image("static/icon_home.png")
+icon_chat = get_base64_image("static/icon_chat.png")
+
+
+
+
 
 
 
