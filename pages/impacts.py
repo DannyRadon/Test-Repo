@@ -1,6 +1,8 @@
 # ---------------------------------------- Test File for Side-Bar Navigation  --------------------------------------------------------
 
 # Import Pool
+import base64
+import pvlib
 import urllib.parse
 import streamlit as st
 import streamlit.components.v1 as components
@@ -12,6 +14,11 @@ from st_click_detector import click_detector
 from helpers.data_load import load_data
 from helpers.data_funcs import *
 
+
+with open("static/calculator.html", "r", encoding="utf-8") as f:
+    calc_html = f.read()
+    
+b64_calc = base64.b64encode(calc_html.encode()).decode()
 
 # Loading in the Data (If Not Cached)
 df_visser, df_bissell, df_aeso = load_data()
@@ -26,7 +33,7 @@ for url_key, state_key in [
     ("graph", "graph_type"), 
     ("x_var", "x_var"), 
     ("y_var", "y_var"),
-    ("view_mode", "view_mode")
+    ("view", "view_mode")
 ]:
     if url_key in st.query_params:
         st.session_state[state_key] = st.query_params[url_key]
@@ -47,7 +54,7 @@ if "y_var" not in st.session_state:
     st.session_state.y_var = "co2_avoided"
 
 if "view_mode" not in st.session_state:
-    st.session_state.view_mode = "Descriptive"
+    st.session_state.view_mode = "Graphical"
 
 if "dataflow" not in st.session_state:
     st.session_state.dataflow = "None"
@@ -67,8 +74,8 @@ url_export = build_url(dataflow="Export")
 url_pie = build_url(graph="Pie")
 url_tree = build_url(graph="Tree")
 
-url_descriptive = build_url(view_mode="Descriptive")
-url_graphical = build_url(view_mode="Graphical")
+url_descriptive = build_url(view="Descriptive")
+url_graphical = build_url(view="Graphical")
 
 # X Variable URLs
 url_month = build_url(x_var="month")
@@ -110,11 +117,15 @@ view_mode = st.session_state.view_mode
 # State Session Checks for Current Dataset(s)
 if df_selection == "Bissell Thrift":
     df = df_bissell
+    df2 = df_visser
     df_select = "Bissell Thrift Shop"
+    df2_select = "New Jubilee"
     
 else:
     df = df_visser
+    df2 = df_bissell
     df_select = "New Jubilee"
+    df2_select = "Bissell Thrift Shop"
 
 
 
@@ -589,27 +600,23 @@ st.markdown(f"""
                 </div>
             </div>
             <div class="dropdown-item">
-                Variables
+                Eco-Variable
                 <div class="submenu">
-                    <div class="dropdown-item">
-                        Comparisons 
-                        <div class="submenu">
-                            <div class="dropdown-item">
-                                Enviro
-                                <div class="submenu">
-                                    <a href="{url_carbon}" target="_self">CO2 Avoided</a>
-                                    <a href="{url_trees}" target="_self">Trees Saved</a>
-                                    <a href="{url_cars}" target="_self">Cars Equivalent</a>
-                                    <a href="{url_homes}" target="_self">Homes Powered</a>
-                                    <a href="{url_coale}" target="_self">Coal Emission Avoided</a>
-                                    <a href="{url_coalt}" target="_self">Coal Weight Avoided</a>
-                                    <a href="{url_gas}" target="_self">Gas Saved</a>
-                                </div>
-                            </div>
-                        </div>  
-                    </div>
+                    <a href="{url_carbon}" target="_self">CO2 Avoided</a>
+                    <a href="{url_trees}" target="_self">Tree Absorp.</a>
+                    <a href="{url_homes}" target="_self">Homes Gen.</a>
+                    <a href="{url_cars}" target="_self">Cars Equiv.</a>
+                    <a href="{url_coalt}" target="_self">Coal Tonnage</a>
+                    <a href="{url_gas}" target="_self">Gas Emission</a>
                 </div>
             </div>
+        </div>
+    </div>
+    <div class="menu-item">
+        Tools
+        <div class="dropdown">
+            <div id="calc-trigger" style="cursor:pointer;">Calculator</div>
+            <div>Write Pad</div>
         </div>
     </div>
     <div class="menu-item">
@@ -619,6 +626,13 @@ st.markdown(f"""
             <div>Report a Bug</div>
             <div>About the Dashboard</div>
         </div>
+</div>
+    <div id="calculator-popout" style="display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: white; border: 3px solid #81c046; z-index: 99999; width: 320px; height: 480px; box-shadow: 0px 4px 15px rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
+        <div style="background: #38c401; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: bold; font-family: sans-serif;">Calculator</span>
+        <button id="close-calc" style="background: none; border: none; color: red; cursor: pointer; font-size: 20px; font-weight: bold;">&times;</button>
+    </div>
+    <iframe src="data:text/html;base64,{b64_calc}" style="width: 100%; height: 430px; border: none; overflow: hidden;" scrolling="no"></iframe>
 </div>
 <div class="taskbar-clock" id="taskbar-clock">00:00:00 PM</div>
 <script>
@@ -697,266 +711,7 @@ if x_new == "month":
     x_new = "Month"
 
 
-html_card_co2 = f""" 
 
-    <div style="
-        background: linear-gradient(
-            180deg,
-            #A4C76E 0%,
-            #7FAE42 50%,
-            #38c401 100%
-        );
-        padding:5px;
-        border:3px solid #f1f1f1;
-        border-radius:10px;
-        height:auto;
-        width:100px;
-        text-align:center;
-        color: #ffffff;
-        display:inline-block;
-        margin:5px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    ">
-      <h3>CO₂ Saved</h3>
-      <p style="font-size:20px;font-weight:bold;">{df['co2_avoided'].sum().round(2)} Tons</p>
-    </div>
-
-"""
-
-
-html_card_gas = f"""
-
-    <div style="
-        background: linear-gradient(
-            180deg,
-            #A4C76E 0%,
-            #7FAE42 50%,
-            #38c401 100%
-        );
-        padding:5px;
-        border:3px solid #f1f1f1;
-        border-radius:10px;
-        height:100px;
-        width:100px;
-        text-align:center;
-        color: #ffffff;
-        display:inline-block;
-        margin:5px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    ">
-        <h3>Gas Prod.</h3>
-        <p style="font-size:20px;font-weight:bold;">{df['gas_saved'].sum().round()} Litres</p>
-    </div> 
-
-"""
-
-html_card_homes = f"""
-
-    <div style="
-        background: linear-gradient(
-            180deg,
-            #A4C76E 0%,
-            #7FAE42 50%,
-            #38c401 100%
-        );
-        padding:5px;
-        border:3px solid #f1f1f1;
-        border-radius:10px;
-        height:auto;
-        width:100px;
-        text-align:center;
-        color: #ffffff;
-        display:inline-block;
-        margin:5px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    ">
-      <h3>Homes Gen.</h3>
-      <p style="font-size:20px;font-weight:bold;">{df['homes_powered'].sum().round(2)} Homes</p>
-    </div>
-
-"""
-
-html_card_cars = f"""
-
-    <div style="
-        background: linear-gradient(
-            180deg,
-            #A4C76E 0%,
-            #7FAE42 50%,
-            #38c401 100%
-        );
-        padding:5px;
-        border:3px solid #f1f1f1;
-        border-radius:10px;
-        height:auto;
-        width:100px;
-        text-align:center;
-        color: #ffffff;
-        display:inline-block;
-        margin:5px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    ">
-      <h3>Cars Equiv.</h3>
-      <p style="font-size:20px;font-weight:bold;">{df['cars_offroad'].sum().round(2)} Cars</p>
-    </div>
-
-"""
-
-html_card_coalt = f"""
-
-    <div style= "
-        background: linear-gradient(
-            180deg,
-            #A4C76E 0%,
-            #7FAE42 50%,
-            #38c401 100%
-        );
-        padding:5px;
-        border:3px solid #f1f1f1;
-        border-radius:10px;
-        height:100px;
-        width:100px;
-        text-align:center;
-        color: #ffffff;
-        display:inline-block;
-        margin:5px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    ">
-        <h3>Coal Saved (T)</h3>
-        <p style="font-size:20px;font-weight:bold;">{df['coal_tonnage_avoided'].sum().round()}</p>
-    </div>
-
-"""
-
-html_card_trees = f""" 
-
-    <div style="
-        background: linear-gradient(
-            180deg,
-            #A4C76E 0%,
-            #7FAE42 50%,
-            #38c401 100%
-        );
-        padding:5px;
-        border:3px solid #f1f1f1;
-        border-radius:10px;
-        height:auto;
-        width:100px;
-        text-align:center;
-        color: #ffffff;
-        display:inline-block;
-        margin:5px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    "> 
-        <h3>Trees Saved</h3>
-        <p style="font-size:20px;font-weight:bold;">{df['trees_saved'].sum().round()}</p>
-    </div>
-
-"""
-
-html_card_jubsize = f""" 
-
-    <div style="
-        background: linear-gradient(
-            180deg,
-            #A4C76E 0%,
-            #7FAE42 50%,
-            #38c401 100%
-        );
-        padding:5px;
-        border:3px solid #f1f1f1;
-        border-radius:10px;
-        height:auto;
-        width:100px;
-        text-align:center;
-        color: #ffffff;
-        display:inline-block;
-        margin:5px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    "> 
-        <h3>System Size</h3>
-        <p style="font-size:20px;font-weight:bold;">14.2 kW</p>
-    </div>
-
-"""
-
-html_card_avg = f""" 
-
-    <div style="
-        background: linear-gradient(
-            180deg,
-            #A4C76E 0%,
-            #7FAE42 50%,
-            #38c401 100%
-        );
-        padding:5px;
-        border:3px solid #f1f1f1;
-        border-radius:10px;
-        height:auto;
-        width:100px;
-        text-align:center;
-        color: #ffffff;
-        display:inline-block;
-        margin:5px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    "> 
-        <h3>Avg. Output</h3>
-        <p style="font-size:20px;font-weight:bold;">{df['Daily Value Imputed'].mean().round(2)}kWh</p>
-    </div>
-
-"""
-
-html_card_cloud = f""" 
-
-    <div style="
-        background: linear-gradient(
-            180deg,
-            #A4C76E 0%,
-            #7FAE42 50%,
-            #38c401 100%
-        );
-        padding:5px;
-        border:3px solid #f1f1f1;
-        border-radius:10px;
-        height:auto;
-        width:100px;
-        text-align:center;
-        color: #ffffff;
-        display:inline-block;
-        margin:5px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    "> 
-        <h3>Avg. Cloud</h3>
-        <p style="font-size:20px;font-weight:bold;">{df['cloud_cover (%)'].mean().round()}%</p>
-    </div>
-
-"""
-
-html_card_bissize = f""" 
-
-    <div style="
-        background: linear-gradient(
-            180deg,
-            #A4C76E 0%,
-            #7FAE42 50%,
-            #38c401 100%
-        );
-        padding:5px;
-        border:3px solid #f1f1f1;
-        border-radius:10px;
-        height:auto;
-        width:100px;
-        text-align:center;
-        color: #ffffff;
-        display:inline-block;
-        margin:5px;
-        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-    "> 
-        <h3>System Size</h3>
-        <p style="font-size:20px;font-weight:bold;">30.7 kW</p>
-    </div>
-
-"""
 st.markdown("""
 <style>
 
@@ -997,50 +752,16 @@ if view_mode == "Descriptive":
     
     with tab1:
         
-        st.header(f"Eco-Impact KPIs for {df_select}")
-        col1, col2, col3 = st.columns(3)
+        if df_select == "New Jubilee":
+            og_size = 14.2
         
-        with col1:
-            st.components.v1.html(html_card_co2)
-            st.components.v1.html(html_card_gas)
-        
-        with col2:
-            st.components.v1.html(html_card_cars)
-            st.components.v1.html(html_card_homes)
+        else:
+            og_size = 30.7
             
-            
-        with col3:
-            st.components.v1.html(html_card_coalt)
-            st.components.v1.html(html_card_trees)
+        render_general_table(df, og_size)
             
             
         st.divider()
-        
-        if df_select == "New Jubilee":
-            st.header("General Stats for New Jubilee Greenhouse:")
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                st.components.v1.html(html_card_jubsize)
-                
-            with col2:
-                st.components.v1.html(html_card_avg)
-                
-            with col3:
-                st.components.v1.html(html_card_cloud)
-        
-        else:
-            st.header("General Stats for Bissell Thrift Shop:")
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                st.components.v1.html(html_card_bissize)
-            
-            with col2:
-                st.components.v1.html(html_card_avg)
-            
-            with col3:
-                st.components.v1.html(html_card_cloud)
                 
                 
     with tab2:
@@ -1177,8 +898,6 @@ else:
     
     with tab1:
     
-        plotly_vis(df, x_new, y_new, vis_type.lower(), data_action=data_action, df_select=df_select)
-        st.divider()
         st.header("Impacts by Solar Site")
     
         impact_cols = [
@@ -1217,40 +936,47 @@ else:
     
     
         st.divider()   
-                    
-                    
-        with tab2:
-            st.header("PVLib Eco-Impact Simulator")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            plotly_vis(df, x_new, y_new, vis_type.lower(), data_action=data_action, df_select=df_select)
+        
+        with col2:
+            plotly_vis(df2, x_new, y_new, vis_type.lower(), data_action=data_action, df_select=df2_select)
+        
+    with tab2:
+        st.header("PVLib Eco-Impact Simulator")
             
-            # Quick Default Value Initializing for Size Selection
-            if df_select == "New Jubilee":
-                og_size = 14.2
-            else:
-                og_size = 30.7
+        # Quick Default Value Initializing for Size Selection
+        if df_select == "New Jubilee":
+            og_size = 14.2
+        else:
+            og_size = 30.7
                 
-            # User Inputted System Configuration Here
-            with st.form("simulation_form"):
-                st.write("### Solar Site System Configuration")
+        # User Inputted System Configuration Here
+        with st.form("simulation_form"):
+            st.write("### Solar Site System Configuration")
                 
-                # User Inputs
-                cap = st.number_input("System Capacity (kW)", min_value=1.0, value=og_size)
-                tilt = st.slider("Panel Tilt (Degrees)", 0, 90, 30)
-                az = st.slider("Panel Azimuth (Degrees)", 0, 360, 180)
+            # User Inputs
+            cap = st.number_input("System Capacity (kW)", min_value=1.0, value=og_size)
+            tilt = st.slider("Panel Tilt (Degrees)", 0, 90, 30)
+            az = st.slider("Panel Azimuth (Degrees)", 0, 360, 180)
                 
-                # Generate Simulation Button
-                submit_button = st.form_submit_button("Run Simulation")
+            # Generate Simulation Button
+            submit_button = st.form_submit_button("Run Simulation")
         
             
-            if submit_button:
+        if submit_button:
                     
-                df_project = RunSimulation(df, cap, tilt, az, df_select)
-                df_project = ProjectNewImpacts(df_project)
+            df_project = RunSimulation(df, cap, tilt, az, df_select)
+            df_project = ProjectNewImpacts(df_project)
                 
-                render_graphic_comparison(df, df_project, og_size, cap, tilt, az)
+            render_graphic_comparison(df, df_project, og_size, cap, tilt, az)
             
     
         
-        with tab3:
+    with tab3:
             
             st.header("Methodology")
             
@@ -1375,3 +1101,26 @@ components.html("""
     updateClock();
 </script>
 """, height=0)
+
+execute_js("""
+const doc = window.parent.document;
+const calcBtn = doc.getElementById('calc-trigger');
+const calcPopout = doc.getElementById('calculator-popout');
+const closeBtn = doc.getElementById('close-calc');
+
+// Toggle from the Menu
+if (calcBtn && calcPopout) {
+    calcBtn.onclick = function() {
+        const isHidden = calcPopout.style.display === 'none';
+        calcPopout.style.display = isHidden ? 'block' : 'none';
+    };
+}
+
+// Close from the 'x'
+if (closeBtn && calcPopout) {
+    closeBtn.onclick = function() {
+        // FIXED: Changed 'popout' to 'calcPopout' to match the variable above
+        calcPopout.style.display = 'none';
+    };
+}
+""")
