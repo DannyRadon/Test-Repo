@@ -456,7 +456,8 @@ for url_key, state_key in [
     ("x", "x"), 
     ("y_test", "y_test"),
     ("view_type", "view_type"),
-    ("calc_btn", "calc_btn")
+    ("calc_btn", "calc_btn"),
+    ("dataflow", "dataflow")
 ]:
     if url_key in st.query_params:
         st.session_state[state_key] = st.query_params[url_key]
@@ -526,12 +527,6 @@ view_type = st.session_state.view_type
 # This HTML File Handles the Task Bar Menu Labelling Control & Drop-Down Menu handling & Drop-Down Sub
 st.markdown(f"""
 <div class="menu-bar">
-    <div class="menu-item">
-        Data
-        <div class="dropdown">
-                <a href="{url_export}" target="_self">Export Dataset</a>
-            </div>
-    </div>
     <div class="menu-item">
         Edit
         <div class="dropdown">
@@ -645,10 +640,7 @@ st.markdown(f"""
 
 # Checking for Import or Export Condition
 
-if dataflow == "Export":
-    csv = df.to_csv(index=False).encode("utf-8")
-    st.download_button("Download CSV", data=csv, file_name="exported_dataset.csv", mime="text/csv")
-    dataflow = "None"
+
 
 
 # ------------- This Section Handles the Y-Variables for Visuals --------
@@ -694,6 +686,10 @@ y_test_model, test_pred, results, test_df, model, X_train, train_df, metrics = T
 
 # RENDER LOGIC
 # ----------------------------
+
+
+# Checking for Import or Export Condition  
+
 
 
 if view_type == "prediction":
