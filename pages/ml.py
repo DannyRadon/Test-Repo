@@ -17,6 +17,8 @@ import matplotlib.pyplot as plt
 from helpers.data_load import load_data
 from helpers.data_funcs import *
 
+import base64
+
 # Imported ML pieces
 from src.aeso_cleaning_fe1 import *
 from src.modeling_2 import *
@@ -28,6 +30,18 @@ icon_impacts_info = get_base64_image("static/icon_impacts.png")
 icon_analytics_info = get_base64_image("static/icon_analytics.png")
 icon_home = get_base64_image("static/icon_home.png")
 icon_chat = get_base64_image("static/icon_chat.png")
+
+
+with open("static/calculator.html", "r", encoding="utf-8") as f:
+    calc_html = f.read()
+    
+b64_calc = base64.b64encode(calc_html.encode()).decode()
+
+
+with open("static/writepad.html", "r", encoding="utf-8") as wp:
+    pad_html = wp.read()
+
+b64_pad = base64.b64encode(pad_html.encode()).decode()
 
 
 # THIS MARKDOWN FILE HANDLES THE TOP BAR & SIDE-BAR GUI APPEARANCES
@@ -441,7 +455,8 @@ for url_key, state_key in [
     ("graph", "graph_type"), 
     ("x", "x"), 
     ("y_test", "y_test"),
-    ("view_type", "view_type")
+    ("view_type", "view_type"),
+    ("calc_btn", "calc_btn")
 ]:
     if url_key in st.query_params:
         st.session_state[state_key] = st.query_params[url_key]
@@ -467,7 +482,8 @@ if "view_type" not in st.session_state:
 if "dataflow" not in st.session_state:
     st.session_state.dataflow = "None"
 
-
+if "calc_btn" not in st.session_state:
+    st.session_state.calc_btn = False
 
 # ----------------------------------------- Initializing & Building HTML URLs --- Used for GUI Click Detection Logic -----------------------|
 
@@ -569,12 +585,33 @@ st.markdown(f"""
         </div>
     </div>
     <div class="menu-item">
+        Tools
+        <div class="dropdown">
+            <div id="calc-trigger" style="cursor:pointer;">Calculator</div>
+            <div id="pad-trigger" style="cursor:pointer;">Write Pad</div>
+        </div>
+    </div>
+    <div class="menu-item">
         Help
         <div class="dropdown">
             <div>Dashboard Help</div>
             <div>Report a Bug</div>
             <div>About the Dashboard</div>
         </div>
+</div>
+    <div id="calculator-popout" style="display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: white; border: 3px solid #81c046; z-index: 99999; width: 320px; height: 480px; box-shadow: 0px 4px 15px rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
+        <div style="background: #38c401; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: bold; font-family: sans-serif;">Calculator</span>
+        <button id="close-calc" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px; font-weight: bold;">&times;</button>
+    </div>
+    <iframe src="data:text/html;base64,{b64_calc}" style="width: 100%; height: 430px; border: none; overflow: hidden;" scrolling="no"></iframe>
+</div>
+<div id="pad-popout" style="display: none; position: fixed; top: 20%; left: 50%; transform: translate(-50%); background: white; border: 3px solid #81c046; z-index: 99999; width: 400px; height: 500px; box-shadow: 0px 4px 15px rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
+    <div style="background: #38c401; color: white; padding: 10px 15px; display: flex; justify-content: space-between;">
+        <span style="font-weight: bold;">Write Pad</span>
+        <button id="close-pad" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
+    </div>
+    <iframe src="data:text/html;base64,{b64_pad}" style="width: 100%; height: 440px; border: none;"></iframe>
 </div>
 <div class="taskbar-clock" id="taskbar-clock">00:00:00 PM</div>
 <script>
@@ -814,3 +851,45 @@ components.html("""
     updateClock();
 </script>
 """, height=0)
+
+execute_js("""
+const doc = window.parent.document;
+const calcBtn = doc.getElementById('calc-trigger');
+const calcPopout = doc.getElementById('calculator-popout');
+const closeBtn = doc.getElementById('close-calc');
+
+// Toggle from the Menu
+if (calcBtn && calcPopout) {
+    calcBtn.onclick = function() {
+        const isHidden = calcPopout.style.display === 'none';
+        calcPopout.style.display = isHidden ? 'block' : 'none';
+    };
+}
+
+// Close from the 'x'
+if (closeBtn && calcPopout) {
+    closeBtn.onclick = function() {
+        // FIXED: Changed 'popout' to 'calcPopout' to match the variable above
+        calcPopout.style.display = 'none';
+    };
+}
+""")
+
+execute_js("""
+const padBtn = doc.getElementById('pad-trigger');
+const padPopout = doc.getElementById('pad-popout');
+const closePad = doc.getElementById('close-pad');
+
+if (padBtn && padPopout) {
+    padBtn.onclick = function() {
+        const isHidden = padPopout.style.display === 'none';
+        padPopout.style.display = isHidden ? 'block' : 'none';
+    };
+}
+
+if (closePad && padPopout) {
+    closePad.onclick = function() {
+        padPopout.style.display = 'none';
+    };
+}
+""")
