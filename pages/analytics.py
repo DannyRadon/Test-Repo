@@ -16,8 +16,6 @@ from st_click_detector import click_detector
 from helpers.data_load import load_data
 from helpers.data_funcs import *
 
-import pvlib
-
 
 with open("static/calculator.html", "r", encoding="utf-8") as f:
     calc_html = f.read()
@@ -38,7 +36,8 @@ for url_key, state_key in [
     ("x_var", "x_var"), 
     ("y_var", "y_var"),
     ("view", "view_mode"),
-    ("calc_btn", "calc_btn")
+    ("calc_btn", "calc_btn"),
+    ("compare", "compare")
 ]:
     if url_key in st.query_params:
         st.session_state[state_key] = st.query_params[url_key]
@@ -66,6 +65,9 @@ if "dataflow" not in st.session_state:
 
 if "calc_btn" not in st.session_state:
     st.session_state.calc_btn = False
+
+if "compare" not in st.session_state:
+    st.session_state.compare = False
 
 if st.query_params.get("show_calc") == "1":
     show_calculator()
@@ -122,7 +124,9 @@ url_coalt = build_url(y_var="coal_t")
 url_gas = build_url(y_var="gas")
                                     
 
+# Dataset Comparison Trigger
 
+url_compare = build_url(compare="True")
 
 
 
@@ -143,16 +147,18 @@ y_var = st.session_state.y_var
 view_mode = st.session_state.view_mode
 dataflow = st.session_state.dataflow
 
-
+compare = st.session_state.compare
 
 # State Session Checks for Current Dataset(s)
 if df_selection == "Bissell Thrift":
     df = df_bissell.copy()
     df_select = "Bissell Thrift Shop"
+    sys_cap = 30.7
     
 elif df_selection == "New Jubilee":
     df = df_visser.copy()
     df_select = "New Jubilee"
+    sys_cap = 14.2
 
 else:
     df = df_aeso.copy()
@@ -582,11 +588,301 @@ with col5:
 
 
 
+# This section just makes the KPI graphic cards with HTML
 
+if df_select == "New Jubilee" or df_select == "Bissell Thrift Shop":
+    kpi_sys_cap = f""" 
+    
+        <div style="
+            background: linear-gradient(
+                180deg,
+                #A4C76E 0%,
+                #7FAE42 50%,
+                #38c401 100%
+            );
+            padding:5px;
+            border:3px solid #f1f1f1;
+            border-radius:10px;
+            height:auto;
+            width:100px;
+            text-align:center;
+            color: #ffffff;
+            display:inline-block;
+            margin:5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        ">
+          <h3>Capacity</h3>
+          <p style="font-size:20px;font-weight:bold;">{sys_cap} kWh</p>
+        </div>
+    
+    """
+    
+    kpi_avg_output = f""" 
+    
+        <div style="
+            background: linear-gradient(
+                180deg,
+                #A4C76E 0%,
+                #7FAE42 50%,
+                #38c401 100%
+            );
+            padding:5px;
+            border:3px solid #f1f1f1;
+            border-radius:10px;
+            height:auto;
+            width:100px;
+            text-align:center;
+            color: #ffffff;
+            display:inline-block;
+            margin:5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        ">
+          <h3>Avg. Output</h3>
+          <p style="font-size:20px;font-weight:bold;">{df['Daily Value Imputed'].mean().round(2)} kWh</p>
+        </div>
+    
+    """
+    
+    kpi_avg_cloud = f""" 
+    
+        <div style="
+            background: linear-gradient(
+                180deg,
+                #A4C76E 0%,
+                #7FAE42 50%,
+                #38c401 100%
+            );
+            padding:5px;
+            border:3px solid #f1f1f1;
+            border-radius:10px;
+            height:auto;
+            width:100px;
+            text-align:center;
+            color: #ffffff;
+            display:inline-block;
+            margin:5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        ">
+          <h3>Avg. Cloud</h3>
+          <p style="font-size:20px;font-weight:bold;">{df['cloud_cover (%)'].mean().round(2)} %</p>
+        </div>
+    
+    """
+    
+    kpi_avg_temp = f""" 
+    
+        <div style="
+            background: linear-gradient(
+                180deg,
+                #A4C76E 0%,
+                #7FAE42 50%,
+                #38c401 100%
+            );
+            padding:5px;
+            border:3px solid #f1f1f1;
+            border-radius:10px;
+            height:auto;
+            width:100px;
+            text-align:center;
+            color: #ffffff;
+            display:inline-block;
+            margin:5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        ">
+          <h3>Avg. Temp</h3>
+          <p style="font-size:20px;font-weight:bold;">{df['temp_air'].mean().round(2)} Celcius</p>
+        </div>
+    
+    """
+    
+    kpi_date_min = f""" 
+    
+        <div style="
+            background: linear-gradient(
+                180deg,
+                #A4C76E 0%,
+                #7FAE42 50%,
+                #38c401 100%
+            );
+            padding:5px;
+            border:3px solid #f1f1f1;
+            border-radius:10px;
+            height:auto;
+            width:100px;
+            text-align:center;
+            color: #ffffff;
+            display:inline-block;
+            margin:5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        ">
+          <h3>Earliest</h3>
+          <p style="font-size:20px;font-weight:bold;">{df['time'].min()}</p>
+        </div>
+    
+    """
+    
+    kpi_date_max = f""" 
+    
+        <div style="
+            background: linear-gradient(
+                180deg,
+                #A4C76E 0%,
+                #7FAE42 50%,
+                #38c401 100%
+            );
+            padding:5px;
+            border:3px solid #f1f1f1;
+            border-radius:10px;
+            height:auto;
+            width:100px;
+            text-align:center;
+            color: #ffffff;
+            display:inline-block;
+            margin:5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        ">
+          <h3>Latest</h3>
+          <p style="font-size:20px;font-weight:bold;">{df['time'].max()}</p>
+        </div>
+    
+    """
+else:
 
+    aeso_date_min = f""" 
+    
+        <div style="
+            background: linear-gradient(
+                180deg,
+                #A4C76E 0%,
+                #7FAE42 50%,
+                #38c401 100%
+            );
+            padding:5px;
+            border:3px solid #f1f1f1;
+            border-radius:10px;
+            height:auto;
+            width:100px;
+            text-align:center;
+            color: #ffffff;
+            display:inline-block;
+            margin:5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        ">
+          <h3>Earliest</h3>
+          <p style="font-size:20px;font-weight:bold;">{df['DateTime'].min()}</p>
+        </div>
+    
+    """
+    
+    aeso_date_max = f""" 
+    
+        <div style="
+            background: linear-gradient(
+                180deg,
+                #A4C76E 0%,
+                #7FAE42 50%,
+                #38c401 100%
+            );
+            padding:5px;
+            border:3px solid #f1f1f1;
+            border-radius:10px;
+            height:auto;
+            width:100px;
+            text-align:center;
+            color: #ffffff;
+            display:inline-block;
+            margin:5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        ">
+          <h3>Latest</h3>
+          <p style="font-size:20px;font-weight:bold;">{df['DateTime'].max()}</p>
+        </div>
+    
+    """
+    
+    aeso_avg_pool = f""" 
+    
+        <div style="
+            background: linear-gradient(
+                180deg,
+                #A4C76E 0%,
+                #7FAE42 50%,
+                #38c401 100%
+            );
+            padding:5px;
+            border:3px solid #f1f1f1;
+            border-radius:10px;
+            height:auto;
+            width:100px;
+            text-align:center;
+            color: #ffffff;
+            display:inline-block;
+            margin:5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        ">
+          <h3>Avg. P-Price</h3>
+          <p style="font-size:20px;font-weight:bold;">$ {df['pool_price'].mean().round()}</p>
+        </div>
+    
+    """    
+    
+    aeso_avg_gen = f""" 
+    
+        <div style="
+            background: linear-gradient(
+                180deg,
+                #A4C76E 0%,
+                #7FAE42 50%,
+                #38c401 100%
+            );
+            padding:5px;
+            border:3px solid #f1f1f1;
+            border-radius:10px;
+            height:auto;
+            width:100px;
+            text-align:center;
+            color: #ffffff;
+            display:inline-block;
+            margin:5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        ">
+          <h3>Avg. Gen.</h3>
+          <p style="font-size:20px;font-weight:bold;">{df['system_generation__solar'].mean().round()} MW</p>
+        </div>
+    
+    """ 
+    
+    aeso_avg_cap = f""" 
+    
+        <div style="
+            background: linear-gradient(
+                180deg,
+                #A4C76E 0%,
+                #7FAE42 50%,
+                #38c401 100%
+            );
+            padding:5px;
+            border:3px solid #f1f1f1;
+            border-radius:10px;
+            height:auto;
+            width:100px;
+            text-align:center;
+            color: #ffffff;
+            display:inline-block;
+            margin:5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        ">
+          <h3>Avg. Capacity</h3>
+          <p style="font-size:20px;font-weight:bold;">{df['system_capacity__solar'].mean().round()} MW</p>
+        </div>
+    
+    """     
 
 if df_select == "AESO":
     
+    
+    if vis_type in ['Box', 'Violin', 'Bar']:
+        vis_type = "Line"
     
     
     if y_var not in [
@@ -671,12 +967,9 @@ if df_select == "AESO":
                     Visualization
                     <div class="submenu">
                         <a href="{url_line}" target="_self">Line</a> 
-                        <a href="{url_bar}" target="_self">Bar</a>
                         <a href="{url_area}" target="_self">Area</a>
                         <a href="{url_scatter}" target="_self">Scatter</a>
                         <a href="{url_histo}" target="_self">Histogram</a>
-                        <a href="{url_box}" target="_self">Box Plot</a>
-                        <a href="{url_violin}" target="_self">Violin Plot</a>
                         <a href="{url_ecdf}" target="_self">Cumulative</a>
                         <a href="{url_matrix}" target="_self">Matrix</a>
                     </div>
@@ -892,18 +1185,10 @@ if df_select == "AESO":
     if view_mode == "Descriptive":
         df_copy = df.copy()
         
-        
-        st.header(f"Descriptive Analytics for {df_select}")
-        st.dataframe(df_copy.describe())
-        st.divider()
+        st.subheader(f"Descriptive Analytics for {df_select}")
+        render_descriptive_table(df, df_select)
     
-        st.header(f"Data-Types for {df_select}")
-        st.dataframe(df_copy.dtypes)
-    
-        st.header(f"Missing & Invalid Values for {df_select}")
-        st.dataframe(df.isnull().sum())
-    
-        st.header(f"Correlation Matrix for {df_select}")
+        st.subheader(f"Correlation Matrix for {df_select}")
         st.dataframe(df_copy.corr(numeric_only=True))
     
     else:
@@ -923,7 +1208,21 @@ if df_select == "AESO":
             
     with tab1:
                 
-        st.write("Insert KPI Cards Here...")
+        col1, col2, col3, col4, col5 = st.columns(5)
+        with col1:
+            st.components.v1.html(aeso_avg_cap)
+        
+        with col2:
+            st.components.v1.html(aeso_avg_gen)
+        
+        with col3:
+            st.components.v1.html(aeso_avg_pool)
+        
+        with col4:
+            st.components.v1.html(aeso_date_max)
+        
+        with col5:
+            st.components.v1.html(aeso_date_min)
                 
                 
     with tab2:
@@ -1137,6 +1436,14 @@ else:
                         </div>
                     </div>
                 </div>
+                <div class="dropdown-item">
+                    Comparison
+                    <div class="submenu">
+                        <div class="dropdown-item">
+                            <a href="{url_compare}" target="_self">Solar Sites</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="menu-item">
@@ -1154,10 +1461,10 @@ else:
                 <div>About the Dashboard</div>
             </div>
     </div>
-    <div id="calculator-popout" style="display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: white; border: 3px solid #3170de; z-index: 99999; width: 320px; height: 480px; box-shadow: 0px 4px 15px rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
-    <div style="background: #3170de; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;">
+    <div id="calculator-popout" style="display: none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: white; border: 3px solid #81c046; z-index: 99999; width: 320px; height: 480px; box-shadow: 0px 4px 15px rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
+    <div style="background: #38c401; color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;">
         <span style="font-weight: bold; font-family: sans-serif;">Calculator</span>
-        <button id="close-calc" style="background: none; border: none; color: red; cursor: pointer; font-size: 20px; font-weight: bold;">&times;</button>
+        <button id="close-calc" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px; font-weight: bold;">&times;</button>
     </div>
     <iframe src="data:text/html;base64,{b64_calc}" style="width: 100%; height: 430px; border: none; overflow: hidden;" scrolling="no"></iframe>
 </div>
@@ -1294,25 +1601,49 @@ else:
     if view_mode == "Descriptive":
         df_copy = df.copy()
         
-        st.header("Descriptive Analytics")
-        st.dataframe(df_copy.describe())
-        st.divider()
-    
-        st.header("Data-Types")
-        st.dataframe(df_copy.dtypes)
-    
-        st.header("Missing & Invalid Values")
-        st.dataframe(df.isnull().sum())
+        render_descriptive_table(df, df_select)
     
         st.header("Correlation Matrix")
         st.dataframe(df_copy.corr(numeric_only=True))
     
     else:
-        try:
-            plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
-        except NameError:
-            data_action = "Generation"
-            plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
+        
+        if compare:
+            
+            if df_select == "New Jubilee":
+                df2 = df_bissell
+            else:
+                df2 == df_visser
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                try:
+                    plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
+                        
+                except NameError:
+                    data_action = "Generation"
+                    plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action) 
+            
+            with col2:
+                try:
+                    plotly_vis(df2, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
+                        
+                except NameError:
+                    data_action = "Generation"
+                    plotly_vis(df2, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)  
+            
+            if "compare" in st.session_state:
+                st.session_state.compare = False
+        
+        else:
+        
+            try:
+                plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
+                
+            except NameError:
+                data_action = "Generation"
+                plotly_vis(df, x_new, y_var, vis_type.lower(), df_select=df_select, data_action=data_action)
         
     
     df = df_visser if st.session_state.dataset == "New Jubilee" else df_bissell
@@ -1322,7 +1653,21 @@ else:
             
     with tab1:
                 
-        st.write("Insert KPI Cards Here...")
+        col1, col2, col3, col4, col5 = st.columns(5)
+        with col1:
+            st.components.v1.html(kpi_sys_cap)
+        
+        with col2:
+            st.components.v1.html(kpi_avg_output)
+        
+        with col3:
+            st.components.v1.html(kpi_date_max)
+        
+        with col4:
+            st.components.v1.html(kpi_date_min)
+        
+        with col5:
+            st.components.v1.html(kpi_avg_cloud)
                 
                 
     with tab2:
