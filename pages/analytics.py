@@ -1690,7 +1690,7 @@ else:
             if df_select == "New Jubilee":
                 df2 = df_bissell
             else:
-                df2 == df_visser
+                df2 = df_visser
             
             col1, col2 = st.columns(2)
             
